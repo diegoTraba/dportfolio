@@ -3,6 +3,7 @@
 import { supabase } from '@/lib/supabase'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import CampoContrasenia from '@/components/CampoContrasenia'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
@@ -17,24 +18,41 @@ export default function Auth() {
     setError('')
     
     try {
-      // Consultar si existe un usuario con ese email y contraseña
-      const { data: users, error: queryError } = await supabase
+      const { data: user, error: queryError } = await supabase
         .from('users')
         .select('*')
         .eq('email', email)
-        .eq('password', password)
         .single()
 
-      if (queryError || !users) {
+      if (queryError || !user) {
         setError('Email o contraseña incorrectos')
         return
       }
 
+      // Verificar contraseña con bcrypt
+    const bcrypt = await import('bcryptjs')
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+
+    if (!isPasswordValid) {
+      setError('Email o contraseña incorrectos')
+      return
+    }
+
+      // ✅ GUARDAR SESIÓN EN LOCALSTORAGE
+      localStorage.setItem('isLoggedIn', 'true')
+      localStorage.setItem('userEmail', email)
+      localStorage.setItem('userId', user.id)
+
       // Login exitoso - redirigir al dashboard
       router.push('/inicio')
       
-    } catch (err) {
-      setError('Error al iniciar sesión')
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'message' in err) {
+        const error = err as { message: string }
+        setError('Error al iniciar sesion: ' + error.message)
+      } else {
+        setError('Error al iniciar sesion: Error desconocido')
+      }
     } finally {
       setLoading(false)
     }
@@ -62,14 +80,11 @@ export default function Auth() {
       
       <div>
         <label className="block text-sm font-medium mb-2">Contraseña</label>
-        <input
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
-          required
-        />
+        <CampoContrasenia
+            value={password}
+            onChange={setPassword}
+            placeholder="Contraseña"
+          />
       </div>
       
       <button

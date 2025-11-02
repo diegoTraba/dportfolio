@@ -1,16 +1,11 @@
-export default function Dashboard() {
+import MenuPrincipal from '@/components/MenuPrincipal'
+import ProtectedRoute from '@/components/ProtectedRoute'
+
+export default function Inicio() {
     return (
+      <ProtectedRoute>
       <div className="min-h-screen bg-gray-900 text-white">
-        <header className="bg-gray-800 border-b border-gray-700">
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-bold">Dashboard</h1>
-            <nav className="flex space-x-4">
-              <button className="px-3 py-2 bg-gray-700 rounded-md">Portfolio</button>
-              <button className="px-3 py-2 bg-gray-700 rounded-md">Alertas</button>
-              <button className="px-3 py-2 bg-gray-700 rounded-md">Configuración</button>
-            </nav>
-          </div>
-        </header>
+        <MenuPrincipal />
   
         <main className="container mx-auto p-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -46,5 +41,6 @@ export default function Dashboard() {
           </div>
         </main>
       </div>
+      </ProtectedRoute>
     );
   }

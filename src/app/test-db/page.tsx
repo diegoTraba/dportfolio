@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 export default async function TestDB() {
-  // Probar conexión a Supabase
+  // Consulta simple sin autenticación
   const { data: users, error } = await supabase
     .from('users')
     .select('*')
@@ -14,7 +14,7 @@ export default async function TestDB() {
       
       {error ? (
         <div className="bg-red-800 p-4 rounded-lg">
-          <h2 className="text-lg font-semibold">Error de conexión:</h2>
+          <h2 className="text-lg font-semibold">Error:</h2>
           <pre className="mt-2">{JSON.stringify(error, null, 2)}</pre>
         </div>
       ) : (

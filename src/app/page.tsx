@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase'
 
 export default function Home() {
   //login simple
@@ -32,7 +33,7 @@ export default function Home() {
         </div>
         
         <div className="mt-6 text-center">
-          <Link href="/dashboard" className="text-blue-400 hover:text-blue-300">
+          <Link href="/inicio" className="text-blue-400 hover:text-blue-300">
             Login (demo)
           </Link>
         </div>

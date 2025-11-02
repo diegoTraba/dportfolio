@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function Navigation() {
   const pathname = usePathname()
@@ -41,7 +42,16 @@ export default function Navigation() {
     <header className="bg-gray-800 border-b border-gray-700">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold">DPortfolio</h1>
+        <div className="flex justify-center mb-6">
+          <Image 
+            src="/img/logo_DPortfolio.png" 
+            alt="DPortfolio" 
+            width={150} 
+            height={50}
+            className="h-12 w-auto" // Ajusta la altura, el ancho se auto-ajusta
+            priority // Para que cargue rápido en la página principal
+          />
+        </div>
           {userEmail && (
             <p className="text-sm text-gray-400">Hola, {userEmail}</p>
           )}

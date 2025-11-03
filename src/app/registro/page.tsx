@@ -81,8 +81,13 @@ export default function Registro() {
         throw insertError
       }
 
+      // Enviar email de bienvenida (sin contraseña por seguridad)
+      const { sendWelcomeEmail } = await import('@/lib/email/accionesEmail')
+      await sendWelcomeEmail(email, name, password)
+
+
       // Registro exitoso - redirigir al login
-      alert('Registro exitoso! Ahora puedes iniciar sesión')
+      alert('Registro exitoso! Se ha enviado un correo con tus credenciales. Ya puedes iniciar sesión')
       router.push('/')
 
     } catch (err: unknown) {

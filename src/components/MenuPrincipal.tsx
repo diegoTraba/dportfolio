@@ -46,9 +46,9 @@ export default function Navigation() {
           <Image 
             src="/img/logo_DPortfolio.png" 
             alt="DPortfolio" 
-            width={150} 
+            width={50} 
             height={50}
-            className="h-12 w-auto" // Ajusta la altura, el ancho se auto-ajusta
+            className="h-8 w-auto" // Ajusta la altura, el ancho se auto-ajusta
             priority // Para que cargue rápido en la página principal
           />
         </div>

@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import CampoContrasenia from '@/components/CampoContrasenia'
+import Aviso from '@/components/Aviso'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
@@ -39,9 +40,10 @@ export default function Auth() {
     }
 
       // ✅ GUARDAR SESIÓN EN LOCALSTORAGE
-      localStorage.setItem('isLoggedIn', 'true')
-      localStorage.setItem('userEmail', email)
-      localStorage.setItem('userId', user.id)
+      localStorage.setItem('estaLogueado', 'true')
+      localStorage.setItem('correoUsuario', email)
+      localStorage.setItem('emailUsuario', user.id)
+      localStorage.setItem('nombreUsuario', user.name)
 
       // Login exitoso - redirigir al dashboard
       router.push('/inicio')
@@ -61,9 +63,10 @@ export default function Auth() {
   return (
     <form onSubmit={handleLogin} className="space-y-4">
       {error && (
-        <div className="bg-red-800 text-white p-3 rounded-md text-sm">
-          {error}
-        </div>
+        <Aviso 
+        tipo="error"
+        mensaje={error}
+      />
       )}
       
       <div>

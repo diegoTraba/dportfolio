@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   useEffect(() => {
     // Verificar si el usuario está logueado
     const checkAuth = () => {
-      const loggedIn = localStorage.getItem('isLoggedIn')
+      const loggedIn = localStorage.getItem('estaLogueado')
       
       if (loggedIn === 'true') {
         setIsAuthenticated(true)

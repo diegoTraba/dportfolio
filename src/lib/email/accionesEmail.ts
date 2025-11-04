@@ -1,20 +1,28 @@
 'use server'
 
 import { sendEmail } from './servicioEmail'
-import { WelcomeEmail, PasswordChangedEmail } from '@/components/email/PlantillaEmail'
+import { EmailAlta, EmailCambioContrasenia, EmailRecuperarContrasenia } from '@/components/email/PlantillaEmail'
 
-export async function sendWelcomeEmail(email: string, userName: string, password: string) {
+export async function enviarEmailAlta(email: string, userName: string, password: string) {
   return await sendEmail(
     email,
     '¡Bienvenido a DPortfolio!',
-    WelcomeEmail({ userName, email, password })
+    EmailAlta({ userName, email, password })
   )
 }
 
-export async function sendPasswordChangedEmail(email: string, userName: string) {
+export async function enviarEmailCambioContrasenia(email: string, userName: string) {
   return await sendEmail(
     email,
     'Contraseña actualizada - DPortfolio',
-    PasswordChangedEmail({ userName })
+    EmailCambioContrasenia({ userName })
+  )
+}
+
+export async function enviarRecuperarContrasenia(email: string, userName: string, newPassword: string) {
+  return await sendEmail(
+    email,
+    'Recuperación de Contraseña - DPortfolio',
+    EmailRecuperarContrasenia({ userName, email, newPassword })
   )
 }

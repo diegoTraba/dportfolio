@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import CampoContrasenia from '@/components/CampoContrasenia'
 import { validarEmail, validarContrasenia } from '@/lib/Validaciones'
+import Aviso from '@/components/Aviso'
 
 export default function Registro() {
   const [email, setEmail] = useState('')
@@ -81,9 +82,9 @@ export default function Registro() {
         throw insertError
       }
 
-      // Enviar email de bienvenida (sin contraseña por seguridad)
-      const { sendWelcomeEmail } = await import('@/lib/email/accionesEmail')
-      await sendWelcomeEmail(email, name, password)
+      // Enviar email de bienvenida
+      const { enviarEmailAlta } = await import('@/lib/email/accionesEmail')
+      await enviarEmailAlta(email, name, password)
 
 
       // Registro exitoso - redirigir al login
@@ -108,9 +109,11 @@ export default function Registro() {
         <h1 className="text-2xl font-bold mb-6 text-center">Registro</h1>
         
         {serverError && (
-          <div className="bg-red-800 text-white p-3 rounded-md text-sm mb-4">
-            {serverError}
-          </div>
+          <Aviso 
+          tipo="error"
+          mensaje={serverError}
+          className="mb-4"
+        />
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">

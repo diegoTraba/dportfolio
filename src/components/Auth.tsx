@@ -3,8 +3,9 @@
 import { supabase } from '@/lib/supabase'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import CampoContrasenia from '@/components/CampoContrasenia'
-import Aviso from '@/components/Aviso'
+import CampoContrasenia from '@/components/controles/CampoContrasenia'
+import Aviso from '@/components/controles/Aviso'
+import Boton from '@/components/controles/boton'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
@@ -31,13 +32,13 @@ export default function Auth() {
       }
 
       // Verificar contraseña con bcrypt
-    const bcrypt = await import('bcryptjs')
-    const isPasswordValid = await bcrypt.compare(password, user.password)
+      const bcrypt = await import('bcryptjs')
+      const isPasswordValid = await bcrypt.compare(password, user.password)
 
-    if (!isPasswordValid) {
-      setError('Email o contraseña incorrectos')
-      return
-    }
+      if (!isPasswordValid) {
+        setError('Email o contraseña incorrectos')
+        return
+      }
 
       // ✅ GUARDAR SESIÓN EN LOCALSTORAGE
       localStorage.setItem('estaLogueado', 'true')
@@ -64,39 +65,45 @@ export default function Auth() {
     <form onSubmit={handleLogin} className="space-y-4">
       {error && (
         <Aviso 
-        tipo="error"
-        mensaje={error}
-      />
+          tipo="error"
+          mensaje={error}
+        />
       )}
       
       <div>
-        <label className="block text-sm font-medium mb-2">Email</label>
+        <label className="block text-sm font-medium mb-2 text-custom-foreground">
+          Email
+        </label>
         <input
           type="email"
           placeholder="tu@email.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+          className="w-full px-3 py-2 bg-custom-background border border-custom-card rounded-md text-custom-foreground placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
           required
         />
       </div>
       
       <div>
-        <label className="block text-sm font-medium mb-2">Contraseña</label>
+        <label className="block text-sm font-medium mb-2 text-custom-foreground">
+          Contraseña
+        </label>
         <CampoContrasenia
-            value={password}
-            onChange={setPassword}
-            placeholder="Contraseña"
-          />
+          value={password}
+          onChange={setPassword}
+          placeholder="Contraseña"
+        />
       </div>
       
-      <button
+      <Boton
         type="submit"
+        texto={loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+        loading={loading}
         disabled={loading}
-        className="w-full bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded-md font-semibold disabled:opacity-50"
-      >
-        {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-      </button>
+        tamaño="grande"
+        variante="primario"
+        className="w-full"
+      />
     </form>
   )
 }

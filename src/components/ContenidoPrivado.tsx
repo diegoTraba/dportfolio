@@ -4,19 +4,19 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+export default function ContenidoPrivado({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [estaAutenticado, setEstaAutenticado] = useState<boolean | null>(null)
 
   useEffect(() => {
     // Verificar si el usuario está logueado
     const checkAuth = () => {
-      const loggedIn = localStorage.getItem('estaLogueado')
+      const logueado = localStorage.getItem('estaLogueado')
       
-      if (loggedIn === 'true') {
-        setIsAuthenticated(true)
+      if (logueado === 'true') {
+        setEstaAutenticado(true)
       } else {
-        setIsAuthenticated(false)
+        setEstaAutenticado(false)
         router.push('/')
       }
     }
@@ -25,7 +25,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }, [router])
 
   // Mostrar loading mientras verifica
-  if (isAuthenticated === null) {
+  if (estaAutenticado === null) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
@@ -37,7 +37,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   // Si está autenticado, mostrar el contenido
-  if (isAuthenticated) {
+  if (estaAutenticado) {
     return <>{children}</>
   }
 

@@ -4,9 +4,9 @@ import { supabase } from '@/lib/supabase'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import CampoContrasenia from '@/components/CampoContrasenia'
+import CampoContrasenia from '@/components/controles/CampoContrasenia'
 import { validarEmail, validarContrasenia } from '@/lib/Validaciones'
-import Aviso from '@/components/Aviso'
+import Aviso from '@/components/controles/Aviso'
 
 export default function Registro() {
   const [email, setEmail] = useState('')

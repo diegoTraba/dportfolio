@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import Aviso from '@/components/Aviso'
+import Aviso from '@/components/controles/Aviso'
 
 export default function RecuperarContrasena() {
   const [email, setEmail] = useState('')

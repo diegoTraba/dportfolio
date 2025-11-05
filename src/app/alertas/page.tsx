@@ -1,5 +1,5 @@
 import MenuPrincipal from '@/components/MenuPrincipal'
-import ProtectedRoute from '@/components/ProtectedRoute'
+import ProtectedRoute from '@/components/ContenidoPrivado'
 
 export default function Alertas() {
   return (

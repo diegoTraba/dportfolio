@@ -11,11 +11,11 @@ export async function enviarEmailAlta(email: string, userName: string, password:
   )
 }
 
-export async function enviarEmailCambioContrasenia(email: string, userName: string) {
+export async function enviarEmailCambioContrasenia(email: string, userName: string, password: string) {
   return await sendEmail(
     email,
     'Contraseña actualizada - DPortfolio',
-    EmailCambioContrasenia({ userName })
+    EmailCambioContrasenia({ userName, email, password })
   )
 }
 

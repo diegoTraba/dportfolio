@@ -57,7 +57,7 @@ export default function MenuPrincipal() {
    */
   const manejarCerrarSesion = () => {
     localStorage.removeItem("estaLogueado");
-    localStorage.removeItem("emailUsuario");
+    localStorage.removeItem("correoUsuario");
     localStorage.removeItem("idUsuario");
     localStorage.removeItem("nombreUsuario");
     setNombreUsuario("");

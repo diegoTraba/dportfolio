@@ -48,22 +48,45 @@ export const EmailAlta = ({ userName, email, password }: { userName: string; ema
   />
 );
 
-export const EmailCambioContrasenia = ({ userName }: { userName: string }) => (
+export const EmailCambioContrasenia = ({ userName, email, password }: { userName: string; email: string; password: string }) => (
   <BaseEmail
     title="Contraseña actualizada"
     greeting={`Hola ${userName},`}
     content={
       <div>
         <p>Tu contraseña en <strong>DPortfolio</strong> ha sido actualizada exitosamente.</p>
-        <p>Si fuiste tú quien realizó este cambio, no necesitas hacer nada más.</p>
-        <p style={{ 
+        
+        <div style={{ 
+          backgroundColor: '#f3f4f6', 
+          padding: '15px',
+          borderRadius: '6px',
+          margin: '15px 0',
+          borderLeft: '4px solid #10b981'
+        }}>
+          <h3 style={{ marginTop: '0', color: '#1f2937' }}>Tus credenciales de acceso actualizadas:</h3>
+          <p style={{ margin: '8px 0' }}><strong>📧 Email:</strong> {email}</p>
+          <p style={{ margin: '8px 0' }}><strong>🔑 Nueva Contraseña:</strong> {password}</p>
+        </div>
+
+        <div style={{ 
           backgroundColor: '#fef3c7', 
           padding: '12px',
           borderRadius: '6px',
-          border: '1px solid #f59e0b'
+          border: '1px solid #f59e0b',
+          margin: '15px 0'
         }}>
-          <strong>⚠️ Seguridad:</strong> Si NO realizaste este cambio, por favor contacta con soporte inmediatamente.
-        </p>
+          <p style={{ margin: '0', color: '#92400e' }}>
+            <strong>⚠️ Seguridad:</strong> 
+            <br/>
+            • Guarda tus nuevas credenciales en un lugar seguro
+            <br/>
+            • Si NO realizaste este cambio, por favor contacta con soporte inmediatamente
+            <br/>
+            • No compartas tus credenciales con nadie
+          </p>
+        </div>
+
+        <p>Ahora puedes iniciar sesión con tu nueva contraseña.</p>
       </div>
     }
     buttonText="Ir a DPortfolio"

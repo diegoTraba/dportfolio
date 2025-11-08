@@ -1,9 +1,10 @@
 'use client'
 
 import { useTema } from '@/hooks/useTema'
+import { useTemaContext } from '@/contexts/TemaContext'
 
 export default function SwitchTema() {
-  const { tema, alternarTema, esOscuro } = useTema()
+  const { tema, alternarTema, esOscuro } = useTemaContext()
 
   return (
     <label className="relative inline-flex items-center cursor-pointer">

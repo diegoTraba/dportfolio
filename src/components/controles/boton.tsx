@@ -1,12 +1,15 @@
+// components/controles/Boton.tsx
 'use client'
 
-import { ButtonHTMLAttributes } from 'react'
+import { ButtonHTMLAttributes, ReactNode } from 'react'
 
 interface BotonPersonalizadoProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  texto: string
+  texto: string | ReactNode
   colorFondo?: string
   colorHover?: string
   colorTexto?: string
+  colorFondoDisabled?: string
+  colorTextoDisabled?: string
   tamaño?: 'pequeno' | 'mediano' | 'grande'
   variante?: 'primario' | 'secundario' | 'acento'
   loading?: boolean
@@ -17,6 +20,8 @@ export default function BotonPersonalizado({
   colorFondo,
   colorHover,
   colorTexto = 'white',
+  colorFondoDisabled,
+  colorTextoDisabled,
   tamaño = 'mediano',
   variante = 'primario',
   loading = false,
@@ -28,16 +33,22 @@ export default function BotonPersonalizado({
   // Colores por defecto según la variante (en RGB)
   const coloresPorDefecto = {
     primario: {
-      fondo: 'rgb(45, 121, 183)',    // #2e78b7
-      hover: 'rgb(37, 105, 165)'     // #2569a5
+      fondo: 'rgb(45, 121, 183)',
+      hover: 'rgb(37, 105, 165)',
+      fondoDisabled: 'rgb(156, 163, 175)',
+      textoDisabled: 'rgb(107, 114, 128)'
     },
     secundario: {
-      fondo: 'rgb(47, 54, 138)',     // #2e3687
-      hover: 'rgb(37, 43, 111)'      // #252e6f
+      fondo: 'rgb(47, 54, 138)',
+      hover: 'rgb(37, 43, 111)',
+      fondoDisabled: 'rgb(156, 163, 175)',
+      textoDisabled: 'rgb(107, 114, 128)'
     },
     acento: {
-      fondo: 'rgb(18, 179, 148)',    // #12b394
-      hover: 'rgb(15, 156, 127)'     // #0f9c7f
+      fondo: 'rgb(18, 179, 148)',
+      hover: 'rgb(15, 156, 127)',
+      fondoDisabled: 'rgb(156, 163, 175)',
+      textoDisabled: 'rgb(107, 114, 128)'
     }
   }
 
@@ -48,32 +59,43 @@ export default function BotonPersonalizado({
     grande: 'px-6 py-3 text-lg'
   }
 
-  const fondo = colorFondo || coloresPorDefecto[variante].fondo
-  const hover = colorHover || coloresPorDefecto[variante].hover
+  const isDisabled = disabled || loading
+
+  // Determinar colores según el estado
+  const fondo = isDisabled 
+    ? colorFondoDisabled || coloresPorDefecto[variante].fondoDisabled
+    : colorFondo || coloresPorDefecto[variante].fondo
+
+  const textoColor = isDisabled
+    ? colorTextoDisabled || coloresPorDefecto[variante].textoDisabled
+    : colorTexto
+
+  const hoverColor = colorHover || coloresPorDefecto[variante].hover
 
   return (
     <button
       {...props}
-      disabled={disabled || loading}
+      disabled={isDisabled}
       className={`
         rounded-md font-semibold transition-all duration-200 
         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+        flex items-center justify-center
         ${tamaños[tamaño]}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+        ${isDisabled ? 'cursor-not-allowed' : 'hover:brightness-110'}
         ${className}
       `}
       style={{
         backgroundColor: fondo,
-        color: colorTexto,
+        color: textoColor,
       }}
-      // Añadimos un efecto hover personalizado
+      // Efecto hover solo si no está deshabilitado
       onMouseEnter={(e) => {
-        if (!disabled && !loading) {
-          e.currentTarget.style.backgroundColor = hover;
+        if (!isDisabled) {
+          e.currentTarget.style.backgroundColor = hoverColor;
         }
       }}
       onMouseLeave={(e) => {
-        if (!disabled && !loading) {
+        if (!isDisabled) {
           e.currentTarget.style.backgroundColor = fondo;
         }
       }}

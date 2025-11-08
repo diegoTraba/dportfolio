@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import CampoContrasenia from '@/components/controles/CampoContrasenia'
 import Aviso from '@/components/controles/Aviso'
-import Boton from '@/components/controles/boton'
+import Boton from '@/components/controles/Boton'
 
 export default function Auth() {
   const [email, setEmail] = useState('')
@@ -43,7 +43,7 @@ export default function Auth() {
       // ✅ GUARDAR SESIÓN EN LOCALSTORAGE
       localStorage.setItem('estaLogueado', 'true')
       localStorage.setItem('correoUsuario', email)
-      localStorage.setItem('emailUsuario', user.id)
+      localStorage.setItem('idUsuario', user.id)
       localStorage.setItem('nombreUsuario', user.name)
 
       // Login exitoso - redirigir al dashboard

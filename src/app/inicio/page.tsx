@@ -18,7 +18,7 @@ import {
 
 /**
  * INTERFAZ: BalanceData
- * 
+ *
  * Define la estructura de los datos de balance que se manejan en esta página
  * - totalBalance: Balance total en USD del usuario
  * - connected: Si el usuario tiene exchanges conectados
@@ -36,12 +36,12 @@ export default function Inicio() {
   // ===========================================================================
   // ESTADOS Y HOOKS
   // ===========================================================================
-  
+
   /**
    * ESTADO: Controla si el modal de conexión Binance está abierto/cerrado
    */
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   /**
    * ESTADO: Almacena todos los datos relacionados con el balance del usuario
    * - Valores iniciales: Balance 0, no conectado, 0 exchanges, cargando
@@ -66,11 +66,11 @@ export default function Inicio() {
 
   /**
    * EFFECT: Cargar datos iniciales del balance al montar el componente
-   * 
+   *
    * Se ejecuta cuando:
    * - El componente se monta por primera vez
    * - El userId cambia (cuando el usuario inicia/cierra sesión)
-   * 
+   *
    * Realiza una llamada a la API para obtener el balance actual del usuario
    */
   useEffect(() => {
@@ -90,17 +90,32 @@ export default function Inicio() {
           return;
         }
 
+        const testCORS = async () => {
+          try {
+            const response = await fetch(
+              "https://dportfolio-backend-production.up.railway.app/debug-cors"
+            );
+            const data = await response.json();
+            console.log("✅ CORS funciona:", data);
+          } catch (error) {
+            console.error("❌ CORS error:", error);
+          }
+        };
+        testCORS();
+
         // LLAMADA A LA API: Obtener balance del usuario desde Binance
-        const response = await fetch(`/api/binance/balance?userId=${userId}`);
+        const response = await fetch(
+          `https://dportfolio-backend-production.up.railway.app/balance/cbdcec91-6ffb-42d4-83de-a979781a3722`
+        );
         const data = await response.json();
 
         // Si la respuesta es exitosa, actualizar el estado con los datos
         if (response.ok) {
           setBalanceData({
-            totalBalance: data.totalBalance || 0,           // Balance total en USD
-            connected: data.connected || false,             // Si está conectado a algún exchange
-            exchangesCount: data.exchangesCount || 0,       // Número de exchanges conectados
-            loading: false,                                 // Quitar estado de carga
+            totalBalance: data.totalBalance || 0, // Balance total en USD
+            connected: data.connected || false, // Si está conectado a algún exchange
+            exchangesCount: data.exchangesCount || 0, // Número de exchanges conectados
+            loading: false, // Quitar estado de carga
           });
         } else {
           // Si la API devuelve error, lanzar excepción
@@ -128,73 +143,75 @@ export default function Inicio() {
 
   /**
    * FUNCIÓN: Conectar cuenta de Binance con API Key y Secret
-   * 
+   *
    * Esta función:
    * 1. Envía las credenciales a la API para validarlas
    * 2. Si son válidas, guarda la conexión en la base de datos
    * 3. Actualiza el estado local con los nuevos datos
-   * 
+   *
    * @param apiKey - API Key de Binance del usuario
    * @param apiSecret - API Secret de Binance del usuario
    */
-  const handleConnectBinance = async (apiKey: string, apiSecret: string) => {
-    try {
-      // Activar estado de carga
-      setBalanceData((prev) => ({ ...prev, loading: true }));
+  // const handleConnectBinance = async (apiKey: string, apiSecret: string) => {
+  //   try {
+  //     // Activar estado de carga
+  //     setBalanceData((prev) => ({ ...prev, loading: true }));
 
-      // Validar que hay un usuario autenticado
-      if (!userId) {
-        throw new Error(
-          "No se encontró el usuario. Por favor, inicia sesión nuevamente."
-        );
-      }
+  //     // Validar que hay un usuario autenticado
+  //     if (!userId) {
+  //       throw new Error(
+  //         "No se encontró el usuario. Por favor, inicia sesión nuevamente."
+  //       );
+  //     }
 
-      // LLAMADA A LA API: Conectar cuenta de Binance
-      const response = await fetch("/api/binance/connect", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          apiKey,
-          apiSecret,
-          userId,
-        }),
-      });
+  //     // LLAMADA A LA API: Conectar cuenta de Binance
+  //     const response = await fetch(
+  //       "https://dportfolio-backend-production.up.railway.app/balance/cbdcec91-6ffb-42d4-83de-a979781a3722",
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           apiKey,
+  //           apiSecret,
+  //           userId,
+  //         }),
+  //       }
+  //     );
 
-      // Procesar respuesta de la API
-      const data = await response.json();
+  //     // Procesar respuesta de la API
+  //     const data = await response.json();
 
-      // Si la API devuelve error, lanzar excepción
-      if (!response.ok) {
-        throw new Error(
-          data.error || `Error ${response.status}: ${response.statusText}`
-        );
-      }
+  //     // Si la API devuelve error, lanzar excepción
+  //     if (!response.ok) {
+  //       throw new Error(
+  //         data.error || `Error ${response.status}: ${response.statusText}`
+  //       );
+  //     }
 
-      // ÉXITO: Actualizar estado con los nuevos datos de Binance
-      setBalanceData({
-        totalBalance: data.totalBalance || 0,       // Nuevo balance total
-        connected: true,                            // Ahora está conectado
-        exchangesCount: 1,                          // Tiene 1 exchange conectado
-        loading: false,                             // Quitar estado de carga
-      });
-      
-    } catch (error) {
-      // ERROR: Mostrar en consola y quitar estado de carga
-      console.error("Error completo connecting Binance:", error);
-      setBalanceData((prev) => ({ ...prev, loading: false }));
-      
-      // Relanzar error para que el modal lo maneje
-      throw error;
-    }
-  };
+  //     // ÉXITO: Actualizar estado con los nuevos datos de Binance
+  //     setBalanceData({
+  //       totalBalance: data.totalBalance || 0, // Nuevo balance total
+  //       connected: true, // Ahora está conectado
+  //       exchangesCount: 1, // Tiene 1 exchange conectado
+  //       loading: false, // Quitar estado de carga
+  //     });
+  //   } catch (error) {
+  //     // ERROR: Mostrar en consola y quitar estado de carga
+  //     console.error("Error completo connecting Binance:", error);
+  //     setBalanceData((prev) => ({ ...prev, loading: false }));
+
+  //     // Relanzar error para que el modal lo maneje
+  //     throw error;
+  //   }
+  // };
 
   /**
    * FUNCIÓN: Formatear balance numérico a formato de moneda USD
-   * 
+   *
    * Convierte un número (ej: 1500.5) a formato de moneda (ej: $1,500.50)
-   * 
+   *
    * @param balance - Balance numérico a formatear
    * @returns String formateado como moneda USD
    */
@@ -208,23 +225,23 @@ export default function Inicio() {
 
   /**
    * FUNCIÓN: Determinar color del balance según el estado de conexión
-   * 
+   *
    * - Gris (#6B7280) cuando está cargando
    * - Verde (#10B981) cuando está conectado y cargado
    * - Gris (#6B7280) cuando no está conectado
-   * 
+   *
    * @param connected - Si el usuario tiene exchanges conectados
    * @param loading - Si está en estado de carga
    * @returns Color hexadecimal como string
    */
   const getBalanceColor = (connected: boolean, loading: boolean) => {
-    if (loading) return "#6B7280";    // Gris para estado de carga
+    if (loading) return "#6B7280"; // Gris para estado de carga
     return connected ? "#10B981" : "#6B7280"; // Verde si conectado, gris si no
   };
 
   /**
    * FUNCIÓN: Abrir modal de conexión Binance
-   * 
+   *
    * Valida que haya un usuario autenticado antes de abrir el modal
    */
   const handleOpenModal = () => {
@@ -305,8 +322,8 @@ export default function Inicio() {
             <Card
               titulo="Alertas Activas"
               contenido={{
-                texto: "0",           // Valor estático por ahora
-                color: "#6B7280",     // Color gris por defecto
+                texto: "0", // Valor estático por ahora
+                color: "#6B7280", // Color gris por defecto
               }}
             />
           </div>
@@ -445,12 +462,13 @@ export default function Inicio() {
           MODAL: Conexión Binance
           Se abre cuando el usuario hace clic en "Conectar Binance"
           Permite ingresar API Key y Secret de forma segura
-        */}
+        
         <ModalBinance
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onConnect={handleConnectBinance}
         />
+        */}
       </div>
     </ProtectedRoute>
   );

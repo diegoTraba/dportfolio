@@ -90,22 +90,22 @@ export default function Inicio() {
           return;
         }
 
-        const testCORS = async () => {
-          try {
-            const response = await fetch(
-              "https://dportfolio-backend-production.up.railway.app/debug-cors"
-            );
-            const data = await response.json();
-            console.log("✅ CORS funciona:", data);
-          } catch (error) {
-            console.error("❌ CORS error:", error);
-          }
-        };
-        testCORS();
+        // const testCORS = async () => {
+        //   try {
+        //     const response = await fetch(
+        //       "https://dportfolio-backend-production.up.railway.app/debug-cors"
+        //     );
+        //     const data = await response.json();
+        //     console.log("✅ CORS funciona:", data);
+        //   } catch (error) {
+        //     console.error("❌ CORS error:", error);
+        //   }
+        // };
+        // testCORS();
 
         // LLAMADA A LA API: Obtener balance del usuario desde Binance
         const response = await fetch(
-          `https://dportfolio-backend-production.up.railway.app/balance/${userId}`
+          `https://dportfolio-backend-production.up.railway.app/api/binance/balance/${userId}`
         );
         const data = await response.json();
 

@@ -112,11 +112,12 @@ export default function Inicio() {
         // Si la respuesta es exitosa, actualizar el estado con los datos
         if (response.ok) {
           setBalanceData({
-            totalBalance: data.totalBalance || 0, // Balance total en USD
+            totalBalance: data.totalUSD || 0, // Balance total en USD
             connected: data.connected || false, // Si está conectado a algún exchange
             exchangesCount: data.exchangesCount || 0, // Número de exchanges conectados
             loading: false, // Quitar estado de carga
           });
+          console.log(balanceData);
         } else {
           // Si la API devuelve error, lanzar excepción
           throw new Error(data.error || "Error al cargar datos");

@@ -166,7 +166,7 @@ export default function Inicio() {
 
       // LLAMADA A LA API: Conectar cuenta de Binance
       const response = await fetch(
-        "/api/binance/connect",
+        "https://dportfolio-backend-production.up.railway.app/binance/connect",
         {
           method: "POST",
           headers: {

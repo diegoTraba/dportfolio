@@ -12,6 +12,9 @@
   --colorPrimario: #2d79b7;
   --colorSecundario: #2e3687;
   --colorTerciario: #12b296;
+
+  --custom-accent: #2d79b7;
+  --custom-accent-hover: #1e5a8a;
 }
 
 [data-theme="dark"] {
@@ -22,6 +25,9 @@
   --card-bg: #1f2937;
   --card-border: #374151;
   --surface: #1f2937;
+
+  --custom-accent: #60a5fa;
+  --custom-accent-hover: #93c5fd;
 }
 
 @theme inline {
@@ -65,4 +71,24 @@ body {
 
 .border-custom-card {
   border-color: var(--card-border);
+}
+
+.border-custom-border {
+  border-color: var(--card-border);
+}
+
+.text-custom-accent {
+  color: var(--custom-accent);
+}
+
+.text-custom-accent-hover:hover {
+  color: var(--custom-accent-hover);
+}
+
+.bg-custom-accent {
+  background-color: var(--custom-accent);
+}
+
+.bg-custom-accent-hover:hover {
+  background-color: var(--custom-accent-hover);
 }

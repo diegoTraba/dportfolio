@@ -15,6 +15,20 @@
 
   --custom-accent: #2d79b7;
   --custom-accent-hover: #1e5a8a;
+
+   /* alertas */
+  --alerta-pendiente-bg: #f0fdf4;
+  --alerta-pendiente-border: #bbf7d0;
+  --alerta-activa-bg: #f0f9ff;
+  --alerta-activa-border: #bae6fd;
+  --badge-pendiente-bg: #fef3c7;
+  --badge-pendiente-text: #92400e;
+  --badge-activo-bg: #d1fae5;
+  --badge-activo-text: #065f46;
+  --condicion-arriba-bg: #dcfce7;
+  --condicion-arriba-text: #166534;
+  --condicion-abajo-bg: #fee2e2;
+  --condicion-abajo-text: #991b1b;
 }
 
 [data-theme="dark"] {
@@ -28,6 +42,20 @@
 
   --custom-accent: #60a5fa;
   --custom-accent-hover: #93c5fd;
+
+  /* alertas */
+  --alerta-pendiente-bg: #052e16;
+  --alerta-pendiente-border: #14532d;
+  --alerta-activa-bg: #0c4a6e;
+  --alerta-activa-border: #0ea5e9;
+  --badge-pendiente-bg: #451a03;
+  --badge-pendiente-text: #fbbf24;
+  --badge-activo-bg: #064e3b;
+  --badge-activo-text: #34d399;
+  --condicion-arriba-bg: #052e16;
+  --condicion-arriba-text: #4ade80;
+  --condicion-abajo-bg: #450a0a;
+  --condicion-abajo-text: #f87171;
 }
 
 @theme inline {
@@ -91,4 +119,53 @@ body {
 
 .bg-custom-accent-hover:hover {
   background-color: var(--custom-accent-hover);
+}
+
+/* Nuevas clases para alertas */
+.bg-alerta-pendiente {
+  background-color: var(--alerta-pendiente-bg);
+}
+
+.border-alerta-pendiente {
+  border-color: var(--alerta-pendiente-border);
+}
+
+.bg-alerta-activa {
+  background-color: var(--alerta-activa-bg);
+}
+
+.border-alerta-activa {
+  border-color: var(--alerta-activa-border);
+}
+
+.bg-badge-pendiente {
+  background-color: var(--badge-pendiente-bg);
+}
+
+.text-badge-pendiente {
+  color: var(--badge-pendiente-text);
+}
+
+.bg-badge-activo {
+  background-color: var(--badge-activo-bg);
+}
+
+.text-badge-activo {
+  color: var(--badge-activo-text);
+}
+
+.bg-condicion-arriba {
+  background-color: var(--condicion-arriba-bg);
+}
+
+.text-condicion-arriba {
+  color: var(--condicion-arriba-text);
+}
+
+.bg-condicion-abajo {
+  background-color: var(--condicion-abajo-bg);
+}
+
+.text-condicion-abajo {
+  color: var(--condicion-abajo-text);
 }

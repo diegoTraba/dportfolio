@@ -32,6 +32,23 @@ interface BalanceData {
   loading: boolean;
 }
 
+/**
+ * INTERFAZ: Alerta
+ *
+ * Define la estructura de una alerta
+ */
+interface Alerta {
+  id: number;
+  user_id: string;
+  criptomoneda: string;
+  condicion: "por encima de" | "por debajo de";
+  precio_objetivo: number;
+  estado: "pendiente" | "activo";
+  precio_actual?: number;
+  activado?: string;
+  creado: string;
+}
+
 export default function Inicio() {
   // ===========================================================================
   // ESTADOS Y HOOKS
@@ -52,6 +69,12 @@ export default function Inicio() {
     exchangesCount: 0,
     loading: true,
   });
+
+  /**
+   * ESTADO: Almacena las alertas del usuario
+   */
+  const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [alertasLoading, setAlertasLoading] = useState(true);
 
   /**
    * HOOK: Obtener el ID del usuario desde el contexto de autenticación
@@ -90,19 +113,6 @@ export default function Inicio() {
           return;
         }
 
-        // const testCORS = async () => {
-        //   try {
-        //     const response = await fetch(
-        //       "https://dportfolio-backend-production.up.railway.app/debug-cors"
-        //     );
-        //     const data = await response.json();
-        //     console.log("✅ CORS funciona:", data);
-        //   } catch (error) {
-        //     console.error("❌ CORS error:", error);
-        //   }
-        // };
-        // testCORS();
-
         // LLAMADA A LA API: Obtener balance del usuario desde Binance
         const response = await fetch(
           `https://dportfolio-backend-production.up.railway.app/api/binance/balance/${userId}`
@@ -137,6 +147,42 @@ export default function Inicio() {
     // Ejecutar la función de carga de datos
     loadInitialData();
   }, [userId]); // Dependencia: se ejecuta cuando userId cambia
+
+  /**
+   * EFFECT: Cargar alertas del usuario
+   */
+  useEffect(() => {
+    const cargarAlertas = async () => {
+      try {
+        setAlertasLoading(true);
+
+        if (!userId) {
+          setAlertas([]);
+          setAlertasLoading(false);
+          return;
+        }
+
+        const response = await fetch(
+          `https://dportfolio-backend-production.up.railway.app/api/alertas/${userId}`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setAlertas(data);
+        } else {
+          console.error("Error cargando alertas:", response.statusText);
+          setAlertas([]);
+        }
+      } catch (err) {
+        console.error("Error cargando alertas:", err);
+        setAlertas([]);
+      } finally {
+        setAlertasLoading(false);
+      }
+    };
+
+    cargarAlertas();
+  }, [userId]);
 
   // ===========================================================================
   // FUNCIONES DE MANEJO DE EVENTOS
@@ -241,6 +287,29 @@ export default function Inicio() {
   };
 
   /**
+   * FUNCIÓN: Determinar color para las alertas
+   */
+  const getAlertasColor = (totalAlertas: number, loading: boolean) => {
+    if (loading) return "#6B7280"; // Gris para estado de carga
+    if (totalAlertas > 0) return "#10B981"; // Verde si hay alertas (igual que las otras cards)
+    return "#6B7280"; // Gris si no hay alertas
+  };
+
+  /**
+   * FUNCIÓN: Contar alertas pendientes
+   */
+  const contarAlertasPendientes = () => {
+    return alertas.filter((alerta) => alerta.estado === "pendiente").length;
+  };
+
+  /**
+   * FUNCIÓN: Contar alertas activadas
+   */
+  const contarAlertasActivadas = () => {
+    return alertas.filter((alerta) => alerta.estado === "activo").length;
+  };
+
+  /**
    * FUNCIÓN: Abrir modal de conexión Binance
    *
    * Valida que haya un usuario autenticado antes de abrir el modal
@@ -321,10 +390,37 @@ export default function Inicio() {
               Placeholder para futura funcionalidad de alertas
             */}
             <Card
-              titulo="Alertas Activas"
+              titulo="Alertas"
               contenido={{
-                texto: "0", // Valor estático por ahora
-                color: "#6B7280", // Color gris por defecto
+                texto: alertasLoading
+                  ? "..."
+                  : (
+                      contarAlertasPendientes() + contarAlertasActivadas()
+                    ).toString(),
+                color: getAlertasColor(
+                  contarAlertasPendientes() + contarAlertasActivadas(),
+                  alertasLoading
+                ),
+                subtitulo: !alertasLoading && (
+                  <div className="space-y-1">
+                    {contarAlertasPendientes() > 0 && (
+                      <div className="text-amber-600">
+                        {contarAlertasPendientes()} pendientes
+                      </div>
+                    )}
+                    {contarAlertasActivadas() > 0 && (
+                      <div className="text-blue-600">
+                        {contarAlertasActivadas()} activadas
+                      </div>
+                    )}
+                    {contarAlertasPendientes() + contarAlertasActivadas() ===
+                      0 && (
+                      <div className="text-gray-600">
+                        No hay alertas configuradas
+                      </div>
+                    )}
+                  </div>
+                ),
               }}
             />
           </div>
@@ -469,7 +565,6 @@ export default function Inicio() {
           onClose={() => setIsModalOpen(false)}
           onConnect={handleConnectBinance}
         />
-       
       </div>
     </ProtectedRoute>
   );

@@ -1,96 +1,147 @@
 "use client";
 
-import MenuPrincipal from '@/components/MenuPrincipal'
-import ProtectedRoute from '@/components/ContenidoPrivado'
-import { useState } from 'react'
+import MenuPrincipal from "@/components/MenuPrincipal";
+import ProtectedRoute from "@/components/ContenidoPrivado";
+import { useState, useEffect } from "react";
+import { useUserId } from "@/hooks/useUserId";
+import { useRouter } from "next/navigation";
+import TarjetaAlerta from "@/components/controles/alertas/TarjetaAlerta";
+import { IconPlus } from "@/components/controles/Iconos";
 
 // Interfaz para definir el tipo de una alerta
 interface Alerta {
   id: number;
+  user_id: string;
   criptomoneda: string;
-  condicion: 'por encima de' | 'por debajo de';
-  precioObjetivo: number;
-  estado: 'pendiente' | 'activo';
-  precioActual?: number;
+  condicion: "por encima de" | "por debajo de";
+  precio_objetivo: number;
+  estado: "pendiente" | "activo";
+  precio_actual?: number;
+  activado?: string;
+  creado: string;
 }
 
 export default function Alertas() {
-  // Estado con datos de ejemplo para las alertas
-  const [alertas, setAlertas] = useState<Alerta[]>([
-    {
-      id: 1,
-      criptomoneda: 'BTC',
-      condicion: 'por encima de',
-      precioObjetivo: 50000,
-      estado: 'pendiente',
-      precioActual: 48900
-    },
-    {
-      id: 2,
-      criptomoneda: 'ETH',
-      condicion: 'por debajo de',
-      precioObjetivo: 3000,
-      estado: 'activo',
-      precioActual: 3050
-    },
-    {
-      id: 3,
-      criptomoneda: 'ADA',
-      condicion: 'por encima de',
-      precioObjetivo: 1.5,
-      estado: 'pendiente',
-      precioActual: 1.45
-    },
-    {
-      id: 4,
-      criptomoneda: 'SOL',
-      condicion: 'por debajo de',
-      precioObjetivo: 120,
-      estado: 'activo',
-      precioActual: 125
+  const [alertas, setAlertas] = useState<Alerta[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const userId = useUserId();
+  const router = useRouter();
+
+  // Cargar alertas al montar el componente
+  useEffect(() => {
+    cargarAlertas();
+  }, [userId]);
+
+  const cargarAlertas = async () => {
+    try {
+      setLoading(true);     
+
+      if (!userId) {
+        setError("Usuario no autenticado");
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch(`https://dportfolio-backend-production.up.railway.app/api/alertas/${userId}`);
+
+      if (!response.ok) {
+        throw new Error("Error al cargar las alertas");
+      }
+
+      const data = await response.json();
+      setAlertas(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error cargando alertas:", err);
+      setError("No se pudieron cargar las alertas");
+    } finally {
+      setLoading(false);
     }
-  ]);
-
-  const handleReactivarAlerta = (id: number) => {
-    setAlertas(alertas.map(alerta => 
-      alerta.id === id ? { ...alerta, estado: 'pendiente' } : alerta
-    ));
   };
 
-  const handleEliminarAlerta = (id: number) => {
-    setAlertas(alertas.filter(alerta => alerta.id !== id));
+  const handleReactivarAlerta = async (id: number) => {
+    try {
+      const response = await fetch(`https://dportfolio-backend-production.up.railway.app/api/alertas/${id}/reactivar`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al reactivar la alerta");
+      }
+
+      // Actualizar el estado local
+      setAlertas(
+        alertas.map((alerta) =>
+          alerta.id === id
+            ? {
+                ...alerta,
+                estado: "pendiente",
+                activado: undefined,
+                precio_actual: undefined,
+              }
+            : alerta
+        )
+      );
+    } catch (err) {
+      console.error("Error reactivando alerta:", err);
+      setError("Error al reactivar la alerta");
+    }
   };
 
-  // Iconos
-  const IconTarget = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
+  const handleEliminarAlerta = async (id: number) => {
+    if (!confirm("¿Estás seguro de que quieres eliminar esta alerta?")) {
+      return;
+    }
 
-  const IconBell = () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM10.24 8.56a5.97 5.97 0 01-3.77-4.19M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  );
+    try {
+      const response = await fetch(`https://dportfolio-backend-production.up.railway.app/api/alertas/${id}`, {
+        method: "DELETE",
+      });
 
-  const IconArrowUp = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-    </svg>
-  );
+      if (!response.ok) {
+        throw new Error("Error al eliminar la alerta");
+      }
 
-  const IconArrowDown = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-    </svg>
-  );
+      // Actualizar el estado local
+      setAlertas(alertas.filter((alerta) => alerta.id !== id));
+    } catch (err) {
+      console.error("Error eliminando alerta:", err);
+      setError("Error al eliminar la alerta");
+    }
+  };
 
-  const IconRefresh = () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-    </svg>
-  );
+  // Nueva función para navegar al formulario de edición
+  const handleEditarAlerta = (alerta: Alerta) => {
+    router.push(`/alertas/editarAlerta?id=${alerta.id}`);
+  };
+
+  // Nueva función para navegar al formulario de creación
+  const handleNuevaAlerta = () => {
+    router.push("/alertas/editarAlerta");
+  };
+
+  if (loading) {
+    return (
+      <ProtectedRoute>
+        <div className="min-h-screen bg-custom-background text-custom-foreground">
+          <MenuPrincipal />
+          <main className="container mx-auto p-4">
+            <div className="flex justify-center items-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-custom-accent mx-auto"></div>
+                <p className="mt-4 text-custom-text">Cargando alertas...</p>
+              </div>
+            </div>
+          </main>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute>
@@ -108,12 +159,26 @@ export default function Alertas() {
                 </p>
               </div>
               <button
+              onClick={handleNuevaAlerta}
                 className="bg-custom-accent hover:bg-custom-accent-hover text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200 shadow-md"
               >
-                <span className="text-lg">+</span>
+                <IconPlus />
                 <span>Añadir Nueva Alerta</span>
               </button>
             </div>
+
+            {/* Mostrar error si existe */}
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                <p>{error}</p>
+                <button 
+                  onClick={cargarAlertas}
+                  className="mt-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                >
+                  Reintentar
+                </button>
+              </div>
+            )}
 
             {/* Surface con las tarjetas de alertas */}
             <div className="bg-custom-surface p-6 rounded-lg shadow-lg border border-custom-border">
@@ -126,117 +191,21 @@ export default function Alertas() {
                 </p>
               </div>
 
-              {/* Repeater de tarjetas */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+               {/* Repeater de tarjetas usando el componente TarjetaAlerta */}
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {alertas.map((alerta) => (
-                  <div
+                  <TarjetaAlerta
                     key={alerta.id}
-                    className={`border rounded-lg p-4 transition-all duration-200 hover:shadow-md ${
-                      alerta.estado === 'pendiente'
-                        ? 'bg-alerta-pendiente border-alerta-pendiente'
-                        : 'bg-alerta-activa border-alerta-activa'
-                    }`}
-                  >
-                    {/* Header de la tarjeta */}
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl font-bold text-custom-text">
-                          {alerta.criptomoneda}
-                        </span>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            alerta.estado === 'pendiente'
-                              ? 'bg-badge-pendiente text-badge-pendiente'
-                              : 'bg-badge-activo text-badge-activo'
-                          }`}
-                        >
-                          {alerta.estado}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Información de la alerta */}
-                    <div className="space-y-3">
-                      {/* Condición con icono */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <IconBell />
-                          <span className="text-custom-text-secondary text-sm">Condición</span>
-                        </div>
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1 ${
-                            alerta.condicion === 'por encima de'
-                              ? 'bg-condicion-arriba text-condicion-arriba'
-                              : 'bg-condicion-abajo text-condicion-abajo'
-                          }`}
-                        >
-                          {alerta.condicion === 'por encima de' ? <IconArrowUp /> : <IconArrowDown />}
-                          <span>
-                            {alerta.condicion === 'por encima de' ? 'Por encima' : 'Por debajo'}
-                          </span>
-                        </span>
-                      </div>
-                      
-                      {/* Precio objetivo con icono */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <IconTarget />
-                          <span className="text-custom-text-secondary text-sm">Precio Objetivo</span>
-                        </div>
-                        <span className="text-custom-text font-bold">
-                          ${alerta.precioObjetivo.toLocaleString()}
-                        </span>
-                      </div>
-
-                      {/* Precio actual (si está disponible) */}
-                      {alerta.precioActual && (
-                        <div className="flex items-center justify-between pt-2 border-t border-custom-border">
-                          <span className="text-custom-text-secondary text-sm">Precio Actual</span>
-                          <span className="text-custom-text font-semibold">
-                            ${alerta.precioActual.toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Botones de acción */}
-                    <div className="mt-4 flex space-x-2">
-                      {alerta.estado === 'activo' ? (
-                        <>
-                          <button 
-                            onClick={() => handleReactivarAlerta(alerta.id)}
-                            className="flex-1 bg-custom-accent hover:bg-custom-accent-hover text-white py-2 px-3 rounded text-sm transition-colors duration-200 flex items-center justify-center space-x-1"
-                          >
-                            <IconRefresh />
-                            <span>Reactivar</span>
-                          </button>
-                          <button 
-                            onClick={() => handleEliminarAlerta(alerta.id)}
-                            className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded text-sm transition-colors duration-200"
-                          >
-                            Eliminar
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button className="flex-1 bg-custom-accent hover:bg-custom-accent-hover text-white py-2 px-3 rounded text-sm transition-colors duration-200">
-                            Editar
-                          </button>
-                          <button 
-                            onClick={() => handleEliminarAlerta(alerta.id)}
-                            className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded text-sm transition-colors duration-200"
-                          >
-                            Eliminar
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                    alerta={alerta}
+                    onEditar={handleEditarAlerta}
+                    onReactivar={handleReactivarAlerta}
+                    onEliminar={handleEliminarAlerta}
+                  />
                 ))}
               </div>
 
               {/* Mensaje cuando no hay alertas */}
-              {alertas.length === 0 && (
+              {alertas.length === 0 && !loading && (
                 <div className="text-center py-8">
                   <p className="text-custom-text-secondary">
                     No tienes alertas configuradas. ¡Crea tu primera alerta!

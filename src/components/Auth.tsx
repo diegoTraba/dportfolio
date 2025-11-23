@@ -14,47 +14,45 @@ export default function Auth() {
   const [error, setError] = useState('')
   const router = useRouter()
 
+  const BACKEND_URL = "https://dportfolio-backend-production.up.railway.app";
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     
     try {
-      const { data: user, error: queryError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single()
+      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
 
-      if (queryError || !user) {
-        setError('Email o contraseña incorrectos')
-        return
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al iniciar sesión')
       }
 
-      // Verificar contraseña con bcrypt
-      const bcrypt = await import('bcryptjs')
-      const isPasswordValid = await bcrypt.compare(password, user.password)
-
-      if (!isPasswordValid) {
-        setError('Email o contraseña incorrectos')
-        return
-      }
-
-      // ✅ GUARDAR SESIÓN EN LOCALSTORAGE
+      // ✅ GUARDAR TOKEN Y DATOS DE USUARIO EN LOCALSTORAGE
+      localStorage.setItem('authToken', data.token)
       localStorage.setItem('estaLogueado', 'true')
-      localStorage.setItem('correoUsuario', email)
-      localStorage.setItem('idUsuario', user.id)
-      localStorage.setItem('nombreUsuario', user.name)
+      localStorage.setItem('correoUsuario', data.user.email)
+      localStorage.setItem('idUsuario', data.user.id)
+      localStorage.setItem('nombreUsuario', data.user.name)
+
+      console.log('✅ Login exitoso, token guardado:', data.user.name)
 
       // Login exitoso - redirigir al dashboard
       router.push('/inicio')
       
     } catch (err: unknown) {
-      if (typeof err === 'object' && err !== null && 'message' in err) {
-        const error = err as { message: string }
-        setError('Error al iniciar sesion: ' + error.message)
+      if (err instanceof Error) {
+        setError('Error al iniciar sesión: ' + err.message)
       } else {
-        setError('Error al iniciar sesion: Error desconocido')
+        setError('Error al iniciar sesión: Error desconocido')
       }
     } finally {
       setLoading(false)

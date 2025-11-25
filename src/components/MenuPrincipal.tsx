@@ -694,7 +694,7 @@ export default function MenuPrincipal() {
                 className={`p-3 rounded-md transition-colors relative ${
                   notificacionesAbierto
                     ? "bg-blue-600 text-white"
-                    : "bg-custom-card text-custom-foreground hover:bg-gray-300 dark:hover:bg-gray-600 border border-custom-card"
+                    : "bg-custom-card text-custom-foreground hover:bg-custom-surface border border-custom-card"
                 }`}
                 title="Notificaciones"
               >
@@ -720,14 +720,14 @@ export default function MenuPrincipal() {
 
               {/* Panel de Notificaciones (bocadillo) */}
               {notificacionesAbierto && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50">
+                <div className="absolute right-0 top-full mt-2 w-80 bg-custom-card border border-custom-border rounded-lg shadow-xl z-50">
                   {/* Header del panel */}
-                  <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="p-4 border-b border-custom-border">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">
+                      <h3 className="font-semibold text-custom-foreground">
                         Notificaciones
                       </h3>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-custom-foreground/70">
                         {notificacionesNoLeidas} sin leer
                       </span>
                     </div>
@@ -736,17 +736,17 @@ export default function MenuPrincipal() {
                   {/* Lista de notificaciones con scroll */}
                   <div className="max-h-80 overflow-y-auto">
                     {notificaciones.length === 0 ? (
-                      <div className="p-4 text-center text-gray-500">
+                      <div className="p-4 text-center text-custom-foreground/70">
                         No hay notificaciones
                       </div>
                     ) : (
                       notificaciones.map((notificacion) => (
                         <div
                           key={notificacion.id}
-                          className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors ${
+                          className={`p-4 border-b border-custom-border cursor-pointer transition-colors ${
                             !notificacion.leida
                               ? "bg-blue-50 dark:bg-blue-900/20"
-                              : "hover:bg-gray-50 dark:hover:bg-gray-700"
+                              : "hover:bg-custom-surface"
                           }`}
                           onClick={() => marcarComoLeida(notificacion.id)}
                         >
@@ -783,14 +783,14 @@ export default function MenuPrincipal() {
                   </div>
 
                   {/* Footer del panel - Marcarlas todas como leídas */}
-                  <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+                  <div className="p-3 border-t border-custom-border">
                     <button
                       onClick={marcarTodasComoLeidas}
                       disabled={notificacionesNoLeidas === 0}
-                      className={`w-full text-center text-sm font-medium transition-colors ${
+                      className={`w-full bg-custom-accent hover:bg-custom-accent-hover text-center text-sm font-medium transition-colors ${
                         notificacionesNoLeidas > 0
-                          ? "text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                          : "text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                          ? "text-custom-accent hover:text-custom-accent-hover"
+                          : "text-custom-foreground/30 cursor-not-allowed"
                       }`}
                     >
                       <div className="flex items-center justify-center space-x-2">
@@ -821,7 +821,7 @@ export default function MenuPrincipal() {
               className={`p-3 rounded-md transition-colors ${
                 estaActiva("/configuracion")
                   ? "bg-blue-600 text-white"
-                  : "bg-custom-card text-custom-foreground hover:bg-gray-300 dark:hover:bg-gray-600 border border-custom-card"
+                  : "bg-custom-card text-custom-foreground hover:bg-custom-surface border border-custom-card"
               }`}
               title="Configuración"
             >
@@ -942,15 +942,15 @@ export default function MenuPrincipal() {
 
         {/* Panel de Notificaciones Móvil (pantalla completa) */}
         {notificacionesAbierto && (
-          <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50">
+          <div className="fixed inset-0 bg-custom-background z-50">
             {/* Header del panel móvil */}
-            <div className="container mx-auto px-4 py-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <div className="container mx-auto px-4 py-4 flex justify-between items-center border-b border-custom-border">
+              <h2 className="text-xl font-semibold text-custom-foreground">
                 Notificaciones
               </h2>
               <button
                 onClick={() => setNotificacionesAbierto(false)}
-                className="p-2 text-gray-500 dark:text-gray-400"
+                className="p-2 text-custom-foreground/70"
                 aria-label="Cerrar notificaciones"
               >
                 <svg
@@ -972,7 +972,7 @@ export default function MenuPrincipal() {
             {/* Contenido del panel móvil con scroll */}
             <div className="container mx-auto px-4 py-4 h-[calc(100vh-140px)] overflow-y-auto">
               {notificaciones.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <div className="text-center py-8 text-custom-foreground/70">
                   <svg
                     className="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600"
                     fill="none"
@@ -996,7 +996,7 @@ export default function MenuPrincipal() {
                       className={`p-4 rounded-lg border transition-colors ${
                         !notificacion.leida
                           ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                          : "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                          : "bg-custom-card border-custom-border"
                       }`}
                       onClick={() => marcarComoLeida(notificacion.id)}
                     >
@@ -1034,14 +1034,14 @@ export default function MenuPrincipal() {
             </div>
 
             {/* Footer móvil - Marcarlas todas como leídas */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-custom-border bg-custom-background">
               <button
                 onClick={marcarTodasComoLeidas}
                 disabled={notificacionesNoLeidas === 0}
                 className={`w-full py-3 text-center rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
                   notificacionesNoLeidas > 0
-                    ? "bg-blue-600 hover:bg-blue-700 text-white"
-                    : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                    ? "bg-custom-accent hover:bg-custom-accent-hover text-white"
+                    : "bg-custom-card text-custom-foreground/50 cursor-not-allowed"
                 }`}
               >
                 <svg
@@ -1070,7 +1070,7 @@ export default function MenuPrincipal() {
           }`}
         >
           {/* Header del menú móvil */}
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center border-b border-custom-border">
             <Image
               src="/img/logo_DPortfolio.png"
               alt="DPortfolio"
@@ -1104,7 +1104,7 @@ export default function MenuPrincipal() {
           <div className="container mx-auto px-4 py-8">
             {/* Información del usuario */}
             {nombreUsuario && (
-              <div className="mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="mb-8 pb-6 border-b border-custom-border">
                 <p className="text-lg text-custom-foreground">
                   Hola, <span className="font-semibold">{nombreUsuario}</span>
                 </p>
@@ -1117,8 +1117,8 @@ export default function MenuPrincipal() {
                 href="/inicio"
                 className={`${estiloEnlaceMovil} ${
                   estaActiva("/inicio")
-                    ? estiloActivoMovil
-                    : estiloInactivoMovil
+                    ? "bg-custom-accent text-white"
+                    : "bg-custom-card text-custom-foreground hover:bg-custom-surface"
                 }`}
                 onClick={() => setMenuAbierto(false)}
               >

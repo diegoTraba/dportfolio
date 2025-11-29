@@ -78,7 +78,7 @@ export default function MenuPrincipal() {
   });
 
   // ==========================================================================
-  // FUNCIONES PRINCIPALES - Usando useCallback para memoización
+  // FUNCIONES PRINCIPALES - Usando useCallback para memorización
   // ==========================================================================
 
   /**
@@ -359,7 +359,7 @@ export default function MenuPrincipal() {
   }, [navegador]);
 
   // ==========================================================================
-  // EFECTOS (useEffect) CORREGIDOS
+  // EFECTOS (useEffect)
   // ==========================================================================
 
   // NUEVO EFECTO: Sincronizar estado al montar el componente
@@ -384,7 +384,7 @@ export default function MenuPrincipal() {
     return () => clearTimeout(timer);
   }, []); // Solo se ejecuta al montar
 
-  // EFECTO PRINCIPAL DEL WEBSOCKET (corregido)
+  // EFECTO PRINCIPAL DEL WEBSOCKET
   useEffect(() => {
     if (!estaAutenticado()) {
       console.log("🔐 Usuario no autenticado, omitiendo conexión WebSocket");
@@ -445,11 +445,6 @@ export default function MenuPrincipal() {
 
           case "notificaciones_actualizadas":
             setNotificaciones(msg.datos as Notificacion[]);
-            break;
-
-          case "ping":
-            console.log("🏓 Recibido PING, enviando PONG");
-            ws?.send(JSON.stringify({ tipo: "pong" }));
             break;
 
           case "error_autenticacion":

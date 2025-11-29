@@ -2,8 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import MenuPrincipal from "@/components/MenuPrincipal";
-import ProtectedRoute from "@/components/ContenidoPrivado";
 import Card from "@/components/controles/Card";
 import Surface from "@/components/controles/Surface";
 import Boton from "@/components/controles/Boton";
@@ -326,246 +324,231 @@ export default function Inicio() {
   // RENDERIZADO DE LA PÁGINA
   // ===========================================================================
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-custom-background text-custom-foreground">
-        {/* 
-          COMPONENTE: MenuPrincipal
-          Barra de navegación superior con acceso a diferentes secciones
-        */}
-        <MenuPrincipal />
-
-        {/* CONTENIDO PRINCIPAL DE LA PÁGINA */}
-        <main className="container mx-auto p-4">
-          {/* 
+    <>
+    {/* Contenido de las páginas */}
+    <main className="container mx-auto p-4">
+      {/* 
             SECCIÓN: CARDS DE RESUMEN
             Muestra información clave en formato de tarjetas
           */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* 
               CARD: Balance Total
               Muestra el balance total del usuario en todas sus cuentas
             */}
-            <Card
-              titulo="Balance Total"
-              contenido={{
-                // Texto: Muestra "Cargando..." o el balance formateado
-                texto: balanceData.loading
-                  ? "Cargando..."
-                  : formatBalance(balanceData.totalBalance),
-                // Color: Cambia según estado de conexión y carga
-                color: getBalanceColor(
-                  balanceData.connected,
-                  balanceData.loading
-                ),
-                // Subtítulo: Estado de conexión con icono
-                subtitulo: balanceData.connected ? (
-                  <span className="text-green-600">
-                    <CheckIcon className="text-green-500" />
-                    Conectado a Binance (Spot y Earn)
-                  </span>
-                ) : (
-                  "Conecta un exchange para empezar"
-                ),
-              }}
-            />
+        <Card
+          titulo="Balance Total"
+          contenido={{
+            // Texto: Muestra "Cargando..." o el balance formateado
+            texto: balanceData.loading
+              ? "Cargando..."
+              : formatBalance(balanceData.totalBalance),
+            // Color: Cambia según estado de conexión y carga
+            color: getBalanceColor(balanceData.connected, balanceData.loading),
+            // Subtítulo: Estado de conexión con icono
+            subtitulo: balanceData.connected ? (
+              <span className="text-green-600">
+                <CheckIcon className="text-green-500" />
+                Conectado a Binance (Spot y Earn)
+              </span>
+            ) : (
+              "Conecta un exchange para empezar"
+            ),
+          }}
+        />
 
-            {/* 
+        {/* 
               CARD: Exchanges Conectados
               Muestra cuántos exchanges tiene conectados el usuario
             */}
-            <Card
-              titulo="Exchanges Conectados"
-              contenido={{
-                // Texto: Muestra "..." durante carga o el número de exchanges
-                texto: balanceData.loading
-                  ? "..."
-                  : balanceData.exchangesCount.toString(),
-                // Color: Verde si tiene exchanges, gris si no
-                color: balanceData.exchangesCount > 0 ? "#10B981" : "#6B7280",
-              }}
-            />
+        <Card
+          titulo="Exchanges Conectados"
+          contenido={{
+            // Texto: Muestra "..." durante carga o el número de exchanges
+            texto: balanceData.loading
+              ? "..."
+              : balanceData.exchangesCount.toString(),
+            // Color: Verde si tiene exchanges, gris si no
+            color: balanceData.exchangesCount > 0 ? "#10B981" : "#6B7280",
+          }}
+        />
 
-            {/* 
+        {/* 
               CARD: Alertas Activas
               Placeholder para futura funcionalidad de alertas
             */}
-            <Card
-              titulo="Alertas"
-              contenido={{
-                texto: alertasLoading
-                  ? "..."
-                  : (
-                      contarAlertasPendientes() + contarAlertasActivadas()
-                    ).toString(),
-                color: getAlertasColor(
-                  contarAlertasPendientes() + contarAlertasActivadas(),
-                  alertasLoading
-                ),
-                subtitulo: !alertasLoading && (
-                  <div className="space-y-1">
-                    {contarAlertasPendientes() > 0 && (
-                      <div className="text-amber-600">
-                        {contarAlertasPendientes()} pendientes
-                      </div>
-                    )}
-                    {contarAlertasActivadas() > 0 && (
-                      <div className="text-blue-600">
-                        {contarAlertasActivadas()} activadas
-                      </div>
-                    )}
-                    {contarAlertasPendientes() + contarAlertasActivadas() ===
-                      0 && (
-                      <div className="text-gray-600">
-                        No hay alertas configuradas
-                      </div>
-                    )}
+        <Card
+          titulo="Alertas"
+          contenido={{
+            texto: alertasLoading
+              ? "..."
+              : (
+                  contarAlertasPendientes() + contarAlertasActivadas()
+                ).toString(),
+            color: getAlertasColor(
+              contarAlertasPendientes() + contarAlertasActivadas(),
+              alertasLoading
+            ),
+            subtitulo: !alertasLoading && (
+              <div className="space-y-1">
+                {contarAlertasPendientes() > 0 && (
+                  <div className="text-amber-600">
+                    {contarAlertasPendientes()} pendientes
                   </div>
-                ),
-              }}
-            />
-          </div>
+                )}
+                {contarAlertasActivadas() > 0 && (
+                  <div className="text-blue-600">
+                    {contarAlertasActivadas()} activadas
+                  </div>
+                )}
+                {contarAlertasPendientes() + contarAlertasActivadas() === 0 && (
+                  <div className="text-gray-600">
+                    No hay alertas configuradas
+                  </div>
+                )}
+              </div>
+            ),
+          }}
+        />
+      </div>
 
-          {/* 
+      {/* 
             SECCIÓN: CONEXIÓN DE EXCHANGES
             Permite al usuario conectar sus cuentas de exchanges
           */}
-          <Surface
-            titulo="Conectar Exchange"
-            descripcion="Conecta tus exchanges para comenzar a monitorear tus inversiones de forma segura"
-          >
-            {/* CONTENEDOR DE BOTONES DE EXCHANGES */}
-            <div className="flex flex-wrap gap-4">
-              {/* 
+      <Surface
+        titulo="Conectar Exchange"
+        descripcion="Conecta tus exchanges para comenzar a monitorear tus inversiones de forma segura"
+      >
+        {/* CONTENEDOR DE BOTONES DE EXCHANGES */}
+        <div className="flex flex-wrap gap-4">
+          {/* 
                 BOTÓN: Binance
                 - Con colores amarillo y negro de la marca
                 - Cambia de estado según conexión
                 - Deshabilitado cuando ya está conectado o está cargando
               */}
-              <Boton
-                texto={
-                  balanceData.connected ? (
-                    // Estado: Conectado - Muestra check y texto
-                    <span>
-                      <CheckIcon />
-                      Binance Conectado
-                    </span>
-                  ) : balanceData.loading ? (
-                    // Estado: Cargando - Muestra spinner y texto
-                    <span>
-                      <LoadingIcon />
-                      Conectando...
-                    </span>
-                  ) : (
-                    // Estado: Desconectado - Muestra icono de enlace y texto
-                    <span>
-                      <LinkIcon />
-                      Conectar Binance
-                    </span>
-                  )
-                }
-                // Colores específicos de Binance (amarillo/negro)
-                colorFondo={!balanceData.connected ? "#F0B90B" : undefined}
-                colorHover={!balanceData.connected ? "#D4A90A" : undefined}
-                colorTexto={!balanceData.connected ? "black" : undefined}
-                // Mantener colores incluso cuando está deshabilitado
-                colorFondoDisabled="#F0B90B"
-                colorTextoDisabled="black"
-                tamaño="mediano"
-                onClick={handleOpenModal}
-                disabled={
-                  balanceData.connected || balanceData.loading || !userId
-                }
-                loading={balanceData.loading}
-              />
+          <Boton
+            texto={
+              balanceData.connected ? (
+                // Estado: Conectado - Muestra check y texto
+                <span>
+                  <CheckIcon />
+                  Binance Conectado
+                </span>
+              ) : balanceData.loading ? (
+                // Estado: Cargando - Muestra spinner y texto
+                <span>
+                  <LoadingIcon />
+                  Conectando...
+                </span>
+              ) : (
+                // Estado: Desconectado - Muestra icono de enlace y texto
+                <span>
+                  <LinkIcon />
+                  Conectar Binance
+                </span>
+              )
+            }
+            // Colores específicos de Binance (amarillo/negro)
+            colorFondo={!balanceData.connected ? "#F0B90B" : undefined}
+            colorHover={!balanceData.connected ? "#D4A90A" : undefined}
+            colorTexto={!balanceData.connected ? "black" : undefined}
+            // Mantener colores incluso cuando está deshabilitado
+            colorFondoDisabled="#F0B90B"
+            colorTextoDisabled="black"
+            tamaño="mediano"
+            onClick={handleOpenModal}
+            disabled={balanceData.connected || balanceData.loading || !userId}
+            loading={balanceData.loading}
+          />
 
-              {/* 
+          {/* 
                 BOTÓN: Kraken (PRÓXIMAMENTE)
                 - Con colores púrpura de la marca
                 - Actualmente deshabilitado
                 - Placeholder para futura implementación
               */}
-              <Boton
-                texto={
-                  <span>
-                    <LinkIcon />
-                    Conectar Kraken
-                  </span>
-                }
-                // Colores específicos de Kraken (púrpura/blanco)
-                colorFondo="#5642ae"
-                colorHover="#483899"
-                colorTexto="white"
-                colorFondoDisabled="#5642ae"
-                colorTextoDisabled="white"
-                tamaño="mediano"
-                disabled={true} // Deshabilitado hasta implementación
-              />
+          <Boton
+            texto={
+              <span>
+                <LinkIcon />
+                Conectar Kraken
+              </span>
+            }
+            // Colores específicos de Kraken (púrpura/blanco)
+            colorFondo="#5642ae"
+            colorHover="#483899"
+            colorTexto="white"
+            colorFondoDisabled="#5642ae"
+            colorTextoDisabled="white"
+            tamaño="mediano"
+            disabled={true} // Deshabilitado hasta implementación
+          />
 
-              {/* 
+          {/* 
                 BOTÓN: Coinbase (PRÓXIMAMENTE)
                 - Con colores azul de la marca
                 - Actualmente deshabilitado
                 - Placeholder para futura implementación
               */}
-              <Boton
-                texto={
-                  <span>
-                    <LinkIcon />
-                    Conectar Coinbase
-                  </span>
-                }
-                // Colores específicos de Coinbase (azul/blanco)
-                colorFondo="#0052FF"
-                colorHover="#0046d9"
-                colorTexto="white"
-                colorFondoDisabled="#0052FF"
-                colorTextoDisabled="white"
-                tamaño="mediano"
-                disabled={true} // Deshabilitado hasta implementación
-              />
-            </div>
+          <Boton
+            texto={
+              <span>
+                <LinkIcon />
+                Conectar Coinbase
+              </span>
+            }
+            // Colores específicos de Coinbase (azul/blanco)
+            colorFondo="#0052FF"
+            colorHover="#0046d9"
+            colorTexto="white"
+            colorFondoDisabled="#0052FF"
+            colorTextoDisabled="white"
+            tamaño="mediano"
+            disabled={true} // Deshabilitado hasta implementación
+          />
+        </div>
 
-            {/* 
+        {/* 
               MENSAJE: Usuario no autenticado
               Se muestra cuando no se detecta una sesión de usuario activa
             */}
-            {!userId && (
-              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-yellow-700 text-sm">
-                  <WarningIcon className="text-yellow-500" />
-                  No se encontró la sesión del usuario. Por favor, inicia sesión
-                  nuevamente.
-                </p>
-              </div>
-            )}
+        {!userId && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-700 text-sm">
+              <WarningIcon className="text-yellow-500" />
+              No se encontró la sesión del usuario. Por favor, inicia sesión
+              nuevamente.
+            </p>
+          </div>
+        )}
 
-            {/* 
+        {/* 
               MENSAJE: Conexión exitosa
               Se muestra cuando Binance se conecta correctamente
             */}
-            {balanceData.connected && (
-              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-700 text-sm">
-                  <CheckIcon className="text-green-500" />
-                  Binance conectado correctamente. Tu balance se actualizará
-                  automáticamente.
-                </p>
-              </div>
-            )}
-          </Surface>
-        </main>
-
-        {/* 
+        {balanceData.connected && (
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-green-700 text-sm">
+              <CheckIcon className="text-green-500" />
+              Binance conectado correctamente. Tu balance se actualizará
+              automáticamente.
+            </p>
+          </div>
+        )}
+      </Surface>    
+      </main>
+      {/* 
           MODAL: Conexión Binance
           Se abre cuando el usuario hace clic en "Conectar Binance"
           Permite ingresar API Key y Secret de forma segura
          */}
-        <ModalBinance
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onConnect={handleConnectBinance}
-        />
-      </div>
-    </ProtectedRoute>
+      <ModalBinance
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConnect={handleConnectBinance}
+      />
+    </>
   );
 }

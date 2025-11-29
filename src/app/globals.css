@@ -169,3 +169,185 @@ body {
 .text-condicion-abajo {
   color: var(--condicion-abajo-text);
 }
+
+/*  ////////////////// Tablas ///////////////////*/
+/* //////////////////////////////////////////// */
+/* Estilos para la tabla de compras */
+.compras-table-container {
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--card-bg);
+}
+
+/* Badges de estado */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.comprado {
+  background: var(--condicion-arriba-bg);
+  color: var(--condicion-arriba-text);
+  border: 1px solid var(--condicion-arriba-border);
+}
+
+.status-badge.vendido {
+  background: var(--badge-pendiente-bg);
+  color: var(--badge-pendiente-text);
+  border: 1px solid var(--badge-pendiente-border);
+}
+
+/* Estilos para react-data-table-component */
+.rdt_Table {
+  background-color: var(--card-bg) !important;
+  color: var(--foreground) !important;
+}
+
+.rdt_TableHead {
+  background-color: var(--header-bg) !important;
+}
+
+.rdt_TableHead .rdt_TableCol {
+  background-color: var(--header-bg) !important;
+  color: var(--foreground) !important;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.rdt_TableBody .rdt_TableRow {
+  background-color: var(--card-bg) !important;
+  color: var(--foreground) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+}
+
+.rdt_TableBody .rdt_TableRow:hover {
+  background-color: var(--surface) !important;
+}
+
+.rdt_TableCell {
+  background-color: inherit !important;
+  color: inherit !important;
+}
+
+/* Alinear columnas numéricas a la derecha */
+.rdt_Table .rdt_TableCell:nth-child(3),
+.rdt_Table .rdt_TableCell:nth-child(4),
+.rdt_Table .rdt_TableCell:nth-child(5) {
+  text-align: right !important;
+}
+
+.rdt_Table .rdt_TableCol:nth-child(3),
+.rdt_Table .rdt_TableCol:nth-child(4),
+.rdt_Table .rdt_TableCol:nth-child(5) {
+  text-align: right !important;
+}
+
+/* Estilos para las tarjetas móviles */
+.mobile-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--background);
+}
+
+.purchase-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.card-row:last-child {
+  border-bottom: none;
+}
+
+.card-row .label {
+  font-weight: 600;
+  color: var(--foreground);
+  opacity: 0.7;
+  font-size: 0.875rem;
+}
+
+.card-row .value {
+  color: var(--foreground);
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+/* Asegurar que no haya scroll horizontal */
+.compras-table-container {
+  overflow-x: hidden;
+}
+
+/* Personalizar la paginación */
+.rdt_Pagination {
+  border-top: 1px solid var(--card-border) !important;
+  background-color: var(--card-bg) !important;
+  color: var(--foreground) !important;
+}
+
+.rdt_Pagination button {
+  color: var(--foreground) !important;
+  background-color: var(--card-bg) !important;
+}
+
+.rdt_Pagination button:hover:not(:disabled) {
+  background-color: var(--surface) !important;
+}
+
+.rdt_Pagination select {
+  color: var(--foreground) !important;
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+.rdt_Pagination svg {
+  fill: var(--foreground) !important;
+}
+
+/* Estilos para el componente de no datos */
+.rdt_Table .no-data-wrapper {
+  background-color: var(--card-bg) !important;
+  color: var(--foreground) !important;
+}
+
+/* Responsive para desktop */
+@media (min-width: 769px) {
+  .compras-table-container {
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+  }
+}
+
+/* Responsive para móvil */
+@media (max-width: 768px) {
+  .compras-table-container {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+  
+  .mobile-cards-container {
+    padding: 0;
+    background: transparent;
+  }
+  
+  .purchase-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+  }
+}

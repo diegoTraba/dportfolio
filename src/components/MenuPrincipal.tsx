@@ -683,6 +683,14 @@ export default function MenuPrincipal() {
             >
               Alertas
             </Link>
+            <Link
+              href="/compras"
+              className={`${estiloBase} ${
+                estaActiva("/compras") ? estiloActivo : estiloInactivo
+              }`}
+            >
+              Compras
+            </Link>
           </nav>
 
           {/* Botones de acción */}

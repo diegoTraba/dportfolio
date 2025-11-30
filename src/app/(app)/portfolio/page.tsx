@@ -19,7 +19,7 @@ import {Alerta} from "@/interfaces/comun.types"
 import {BalanceData} from "@/interfaces/cripto.types"
 
 
-export default function Inicio() {
+export default function Portfolio() {
   // ===========================================================================
   // ESTADOS Y HOOKS
   // ===========================================================================

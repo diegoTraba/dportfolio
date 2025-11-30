@@ -45,7 +45,7 @@ export default function Auth() {
       console.log('✅ Login exitoso, token guardado:', data.user.name)
 
       // Login exitoso - redirigir al dashboard
-      router.push('/inicio')
+      router.push('/portfolio')
       
     } catch (err: unknown) {
       if (err instanceof Error) {

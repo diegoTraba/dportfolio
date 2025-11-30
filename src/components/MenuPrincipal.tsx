@@ -10,9 +10,20 @@ import {
   addConnectionListener,
   isWebSocketConnected,
 } from "../lib/webSockedClient";
-import { IconoAlerta,IconoSistema,IconoDefecto, IconoCampana,IconoEngranaje,IconoCerrarSesion,IconoPortfolio,IconoMarcarLeidas, IconoCerrar,IconoMenu} from "./controles/Iconos";
+import {
+  IconoAlerta,
+  IconoSistema,
+  IconoDefecto,
+  IconoCampana,
+  IconoEngranaje,
+  IconoCerrarSesion,
+  IconoPortfolio,
+  IconoMarcarLeidas,
+  IconoCerrar,
+  IconoMenu,
+} from "./controles/Iconos";
 // Interfaces
-import {Notificacion,WSMessage} from "../interfaces/comun.types"
+import { Notificacion, WSMessage } from "../interfaces/comun.types";
 
 export default function MenuPrincipal() {
   const rutaActual = usePathname();
@@ -172,12 +183,7 @@ export default function MenuPrincipal() {
     } catch (error) {
       console.error("💥 Error cargando notificaciones:", error);
     }
-  }, [
-    BACKEND_URL,
-    obtenerHeaders,
-    estaAutenticado,
-    manejarTokenInvalido
-  ]);
+  }, [BACKEND_URL, obtenerHeaders, estaAutenticado, manejarTokenInvalido]);
 
   /**
    * Marcar una notificación como leída
@@ -260,6 +266,12 @@ export default function MenuPrincipal() {
    */
   const estaActiva = useCallback(
     (ruta: string) => {
+      // Si es la ruta de portfolio, activar también para sus subrutas
+      if (ruta === "/portfolio") {
+        return rutaActual === ruta || rutaActual.startsWith(ruta + '/');
+      }
+      
+      // Para otras rutas, comportamiento normal (comparación exacta)
       return rutaActual === ruta;
     },
     [rutaActual]
@@ -520,13 +532,6 @@ export default function MenuPrincipal() {
     (notif) => !notif.leida
   ).length;
 
-  // Estilos para la navegación
-  const estiloBase =
-    "px-3 py-2 rounded-md transition-colors flex items-center justify-center";
-  const estiloActivo = "bg-blue-600 text-white";
-  const estiloInactivo =
-    "bg-custom-card text-custom-foreground hover:bg-gray-300 dark:hover:bg-gray-600 border border-custom-card";
-
   // Estilos para el menú móvil
   const estiloEnlaceMovil =
     "block py-4 text-xl font-medium border-b border-gray-200 dark:border-gray-700 transition-colors";
@@ -545,7 +550,7 @@ export default function MenuPrincipal() {
   // ==========================================================================
 
   return (
-    <header className="bg-custom-header border-b border-custom-header transition-colors duration-300">
+    <header className="fixed top-0 left-0 right-0 bg-custom-header border-b border-custom-header transition-colors duration-300 z-50">
       {/* Indicador de conexión WebSocket (solo en desarrollo) */}
       {process.env.NODE_ENV === "development" && (
         <div
@@ -561,19 +566,21 @@ export default function MenuPrincipal() {
         </div>
       )}
 
-      {/* Navegación Desktop */}
+      {/* Navegación Desktop - ALTURA AJUSTADA A 66px */}
       <div className="hidden md:block">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="container mx-auto px-4 h-[66px] flex items-center justify-between">
           {/* Logo y mensaje de bienvenida */}
           <div className="flex items-center space-x-4">
-            <Image
-              src="/img/logo_DPortfolio.png"
-              alt="DPortfolio"
-              width={50}
-              height={50}
-              className="h-10 w-auto"
-              priority
-            />
+            <Link href="/portfolio" className="flex items-center">
+              <Image
+                src="/img/logo_DPortfolio.png"
+                alt="DPortfolio"
+                width={50}
+                height={50}
+                className="h-10 w-auto"
+                priority
+              />
+            </Link>
             {nombreUsuario && (
               <p className="text-sm text-custom-foreground">
                 Hola, <span className="font-medium">{nombreUsuario}</span>
@@ -582,30 +589,20 @@ export default function MenuPrincipal() {
           </div>
 
           {/* Navegación central */}
-          <nav className="flex space-x-2 items-center">
+          <nav className="flex space-x-6 items-center">
             <Link
-              href="/inicio"
-              className={`${estiloBase} ${
-                estaActiva("/inicio") ? estiloActivo : estiloInactivo
-              }`}
+              href="/portfolio"
+              className={`menu-link flex items-center ${estaActiva("/portfolio") ? 'active' : ''}`}
             >
+              <IconoPortfolio className="w-5 h-5 mr-2" />
               Portfolio
             </Link>
             <Link
               href="/alertas"
-              className={`${estiloBase} ${
-                estaActiva("/alertas") ? estiloActivo : estiloInactivo
-              }`}
+              className={`menu-link flex items-center ${estaActiva("/alertas") ? 'active' : ''}`}
             >
+              <IconoCampana className="w-5 h-5 mr-2" />
               Alertas
-            </Link>
-            <Link
-              href="/compras"
-              className={`${estiloBase} ${
-                estaActiva("/compras") ? estiloActivo : estiloInactivo
-              }`}
-            >
-              Compras
             </Link>
           </nav>
 
@@ -725,7 +722,7 @@ export default function MenuPrincipal() {
               }`}
               title="Configuración"
             >
-              <IconoEngranaje className="w-6 h-6"/>
+              <IconoEngranaje className="w-6 h-6" />
             </Link>
 
             {/* Botón Cerrar Sesión */}
@@ -740,7 +737,7 @@ export default function MenuPrincipal() {
         </div>
       </div>
 
-      {/* Navegación Mobile */}
+      {/* Navegación Mobile - SE MANTIENE IGUAL */}
       <div className="md:hidden">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           {/* Logo */}
@@ -782,6 +779,7 @@ export default function MenuPrincipal() {
           </div>
         </div>
 
+        {/* El resto del código móvil se mantiene igual... */}
         {/* Panel de Notificaciones Móvil (pantalla completa) */}
         {notificacionesAbierto && (
           <div className="fixed inset-0 bg-custom-background z-50">
@@ -862,7 +860,7 @@ export default function MenuPrincipal() {
                     : "bg-custom-card text-custom-foreground/50 cursor-not-allowed"
                 }`}
               >
-                 <IconoMarcarLeidas className="w-5 h-5" />
+                <IconoMarcarLeidas className="w-5 h-5" />
                 <span>Marcar todas como leídas</span>
               </button>
             </div>
@@ -908,16 +906,16 @@ export default function MenuPrincipal() {
             {/* Navegación principal */}
             <nav className="space-y-2 mb-8">
               <Link
-                href="/inicio"
+                href="/portfolio"
                 className={`${estiloEnlaceMovil} ${
-                  estaActiva("/inicio")
+                  estaActiva("/portfolio")
                     ? "bg-custom-accent text-white"
                     : "bg-custom-card text-custom-foreground hover:bg-custom-surface"
                 }`}
                 onClick={() => setMenuAbierto(false)}
               >
                 <div className="flex items-center">
-                <IconoPortfolio className="w-5 h-5 mr-3" />
+                  <IconoPortfolio className="w-5 h-5 mr-3" />
                   Portfolio
                 </div>
               </Link>
@@ -932,7 +930,7 @@ export default function MenuPrincipal() {
                 onClick={() => setMenuAbierto(false)}
               >
                 <div className="flex items-center">
-                <IconoCampana className="w-5 h-5 mr-3" />
+                  <IconoCampana className="w-5 h-5 mr-3" />
                   Alertas
                 </div>
               </Link>
@@ -947,7 +945,7 @@ export default function MenuPrincipal() {
                 onClick={() => setMenuAbierto(false)}
               >
                 <div className="flex items-center">
-                <IconoEngranaje className="w-5 h-5 mr-3" />
+                  <IconoEngranaje className="w-5 h-5 mr-3" />
                   Configuración
                 </div>
               </Link>

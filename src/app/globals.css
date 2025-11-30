@@ -351,3 +351,31 @@ body {
     border: 1px solid var(--card-border);
   }
 }
+
+.menu-link {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  color: var(--foreground);
+  opacity: 0.8;
+}
+
+.menu-link:hover,
+.menu-link.active {
+  font-weight: bold;
+  color: var(--colorTerciario);
+  opacity: 1;
+}
+
+/* Versión dark para los enlaces del menú */
+[data-theme="dark"] .menu-link {
+  color: var(--foreground);
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .menu-link:hover,
+[data-theme="dark"] .menu-link.active {
+  color: var(--colorTerciario);
+  opacity: 1;
+}

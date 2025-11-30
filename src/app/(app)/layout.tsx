@@ -8,7 +8,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-custom-background text-custom-foreground">
         {/* Menú principal que se mantendrá en todas las páginas protegidas */}
         <MenuPrincipal />
-        <div className="pt-22"> {/* Ajusta este valor según la altura de tu menú */}
+        <div className="pt-16"> {/* Ajusta este valor según la altura de tu menú */}
           {children}
         </div>
       </div>

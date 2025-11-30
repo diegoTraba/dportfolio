@@ -76,6 +76,7 @@ export interface Compra {
   date: string;
   product: string;
   quantity: number;
+  comision: number;
   price: number;
   status: string;
   total?: number;

@@ -54,6 +54,7 @@ export default function Compras() {
           date: new Date(trade.timestamp).toLocaleDateString("es-ES"),
           product: trade.symbol,
           quantity: trade.quantity,
+          comision: trade.commission,
           price: trade.price,
           status: trade.isBuyer ? "comprado" : "vendido", // Podemos derivar el estado de isBuyer
         }));
@@ -105,9 +106,9 @@ export default function Compras() {
 
         {!loading && !error && compras.length > 0 && (
           <>
-            <div className="mb-4 text-sm text-gray-600">
+            {/* <div className="mb-4 text-sm text-gray-600">
               Mostrando {compras.length} de {totalCompras} operaciones
-            </div>
+            </div> */}
             <TablaCompras compras={compras} />
           </>
         )}

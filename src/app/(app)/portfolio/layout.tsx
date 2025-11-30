@@ -22,7 +22,7 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-custom-background">
       {/* Pestañas de navegación fijas */}
-      <div className="fixed top-22 left-0 right-0 bg-custom-header dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-40">
+      <div className="fixed top-16 left-0 right-0 bg-custom-header dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-40">
         <div className="container mx-auto">
           <PestaniasPortfolio pestanias={pestanias} />
         </div>

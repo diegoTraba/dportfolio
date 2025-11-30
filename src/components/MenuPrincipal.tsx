@@ -552,7 +552,7 @@ export default function MenuPrincipal() {
   return (
     <header className="fixed top-0 left-0 right-0 bg-custom-header border-b border-custom-header transition-colors duration-300 z-50">
       {/* Indicador de conexión WebSocket (solo en desarrollo) */}
-      {process.env.NODE_ENV === "development" && (
+      {/* {process.env.NODE_ENV === "development" && (
         <div
           className={`text-xs text-center py-1 ${
             estaConectado ? "bg-green-500 text-white" : "bg-red-500 text-white"
@@ -564,7 +564,7 @@ export default function MenuPrincipal() {
               ? "🔄 Reconectando..."
               : "⚠️ Desconectado"}
         </div>
-      )}
+      )} */}
 
       {/* Navegación Desktop - ALTURA AJUSTADA A 66px */}
       <div className="hidden md:block">

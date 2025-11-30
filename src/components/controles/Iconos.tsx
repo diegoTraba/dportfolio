@@ -1,5 +1,5 @@
 // components/Iconos.tsx
-export const CheckIcon = ({ className = "" }: { className?: string }) => (
+export const IconoCheck = ({ className = "" }: { className?: string }) => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`inline mr-2 ${className}`}>
     <path 
       d="M13.3334 4L6.00008 11.3333L2.66675 8" 
@@ -11,7 +11,7 @@ export const CheckIcon = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-export const LinkIcon = ({ className = "" }: { className?: string }) => (
+export const IconoLink = ({ className = "" }: { className?: string }) => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`inline mr-2 ${className}`}>
     <path 
       d="M6.66675 8.66667L9.33341 6M9.33341 6L6.66675 3.33333M9.33341 6H4.66675M11.3334 9.33333C12.0698 9.33333 12.6667 9.93029 12.6667 10.6667V11.3333C12.6667 12.0697 12.0698 12.6667 11.3334 12.6667H4.66675C3.93037 12.6667 3.33341 12.0697 3.33341 11.3333V10.6667C3.33341 9.93029 3.93037 9.33333 4.66675 9.33333" 
@@ -23,7 +23,7 @@ export const LinkIcon = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-export const LoadingIcon = ({ className = "" }: { className?: string }) => (
+export const IconoCargando = ({ className = "" }: { className?: string }) => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`inline mr-2 animate-spin ${className}`}>
     <circle 
       cx="8" 
@@ -43,7 +43,7 @@ export const LoadingIcon = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-export const WarningIcon = ({ className = "" }: { className?: string }) => (
+export const IconoAviso = ({ className = "" }: { className?: string }) => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className={`inline mr-2 ${className}`}>
     <path 
       d="M8 5.33333V8M8 10.6667H8.00667M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8Z" 
@@ -55,7 +55,7 @@ export const WarningIcon = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-export const IconTarget = ({ className = "" }: { className?: string }) => (
+export const IconoObjetivo = ({ className = "" }: { className?: string }) => (
   <svg
     className={`w-5 h-5 ${className}`}
     fill="none"
@@ -71,7 +71,7 @@ export const IconTarget = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-export const IconBell = ({ className = "" }: { className?: string }) => (
+export const IconoCampana = ({ className = "" }: { className?: string }) => (
   <svg
     className={`w-5 h-5 ${className}`}
     fill="none"
@@ -87,7 +87,7 @@ export const IconBell = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-export const IconArrowUp = ({ className = "" }: { className?: string }) => (
+export const IconoFlechaArriba = ({ className = "" }: { className?: string }) => (
   <svg
     className={`w-4 h-4 ${className}`}
     fill="none"
@@ -103,7 +103,7 @@ export const IconArrowUp = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-export const IconArrowDown = ({ className = "" }: { className?: string }) => (
+export const IconoFleChaAbajo = ({ className = "" }: { className?: string }) => (
   <svg
     className={`w-4 h-4 ${className}`}
     fill="none"
@@ -119,7 +119,7 @@ export const IconArrowDown = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-export const IconRefresh = ({ className = "" }: { className?: string }) => (
+export const IconoRefrescar = ({ className = "" }: { className?: string }) => (
   <svg
     className={`w-4 h-4 ${className}`}
     fill="none"
@@ -135,14 +135,68 @@ export const IconRefresh = ({ className = "" }: { className?: string }) => (
   </svg>
 );
 
-export const IconPlus = ({ className = "" }: { className?: string }) => (
+export const IconoMas = ({ className = "" }: { className?: string }) => (
   <svg className={`w-5 h-5 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
   </svg>
 );
 
-export const IconPrice = ({ className = "" }: { className?: string }) => (
+export const IconoPrecio = ({ className = "" }: { className?: string }) => (
   <svg className={`w-5 h-5 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
   </svg>
 );
+
+  ////////////////////
+ // Notificaciones //
+////////////////////
+export const IconoAlerta = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+    />
+  </svg>
+);
+
+export const IconoSistema = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+export const IconoDefecto = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+  ////////////////////////
+ // Fin Notificaciones //
+////////////////////////

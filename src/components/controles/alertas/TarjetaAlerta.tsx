@@ -1,5 +1,5 @@
 // components/alertas/TarjetaAlerta.tsx
-import { IconBell, IconTarget, IconArrowUp, IconArrowDown, IconRefresh } from "@/components/controles/Iconos";
+import { IconoCampana, IconoObjetivo, IconoFlechaArriba, IconoFleChaAbajo, IconoRefrescar } from "@/components/controles/Iconos";
 import {TarjetaAlertaProps} from "@/interfaces/comun.types";
 
 export default function TarjetaAlerta({ alerta, onEditar, onReactivar, onEliminar }: TarjetaAlertaProps) {
@@ -34,7 +34,7 @@ export default function TarjetaAlerta({ alerta, onEditar, onReactivar, onElimina
         {/* Condición con icono */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <IconBell />
+            <IconoCampana />
             <span className="text-custom-text-secondary text-sm">Condición</span>
           </div>
           <span
@@ -44,7 +44,7 @@ export default function TarjetaAlerta({ alerta, onEditar, onReactivar, onElimina
                 : 'bg-condicion-abajo text-condicion-abajo'
             }`}
           >
-            {alerta.condicion === 'por encima de' ? <IconArrowUp /> : <IconArrowDown />}
+            {alerta.condicion === 'por encima de' ? <IconoFlechaArriba /> : <IconoFleChaAbajo />}
             <span>
               {alerta.condicion === 'por encima de' ? 'Por encima' : 'Por debajo'}
             </span>
@@ -54,7 +54,7 @@ export default function TarjetaAlerta({ alerta, onEditar, onReactivar, onElimina
         {/* Precio objetivo con icono */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <IconTarget />
+            <IconoObjetivo />
             <span className="text-custom-text-secondary text-sm">Precio Objetivo</span>
           </div>
           <span className="text-custom-text font-bold">
@@ -91,7 +91,7 @@ export default function TarjetaAlerta({ alerta, onEditar, onReactivar, onElimina
               onClick={() => onReactivar(alerta.id)}
               className="flex-1 bg-custom-accent hover:bg-custom-accent-hover text-white py-2 px-3 rounded text-sm transition-colors duration-200 flex items-center justify-center space-x-1"
             >
-              <IconRefresh />
+              <IconoRefrescar />
               <span>Reactivar</span>
             </button>
             <button 

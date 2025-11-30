@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useUserId } from "@/hooks/useUserId";
 import { useRouter } from "next/navigation";
 import TarjetaAlerta from "@/components/controles/alertas/TarjetaAlerta";
-import { IconPlus } from "@/components/controles/Iconos";
+import { IconoMas } from "@/components/controles/Iconos";
 import {Alerta} from "@/interfaces/comun.types"
 
 export default function Alertas() {
@@ -152,7 +152,7 @@ export default function Alertas() {
               onClick={handleNuevaAlerta}
               className="bg-custom-accent hover:bg-custom-accent-hover text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200 shadow-md"
             >
-              <IconPlus />
+              <IconoMas />
               <span>Añadir Nueva Alerta</span>
             </button>
           </div>

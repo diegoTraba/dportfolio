@@ -10,7 +10,7 @@ import {
   addConnectionListener,
   isWebSocketConnected,
 } from "../lib/webSockedClient";
-
+import { IconoAlerta,IconoSistema,IconoDefecto } from "./controles/Iconos";
 // Interfaces
 import {Notificacion,WSMessage} from "../interfaces/comun.types"
 
@@ -154,9 +154,6 @@ export default function MenuPrincipal() {
         );
         return;
       }
-
-      // const token = obtenerToken();
-      const usuarioId = obtenerUsuarioId();
       const response = await fetch(`${BACKEND_URL}/api/notificaciones`, {
         method: "GET",
         headers: obtenerHeaders(),
@@ -179,8 +176,7 @@ export default function MenuPrincipal() {
     BACKEND_URL,
     obtenerHeaders,
     estaAutenticado,
-    manejarTokenInvalido,
-    obtenerUsuarioId,
+    manejarTokenInvalido
   ]);
 
   /**
@@ -251,53 +247,11 @@ export default function MenuPrincipal() {
   const obtenerIcono = useCallback((tipo: string) => {
     switch (tipo) {
       case "alerta":
-        return (
-          <svg
-            className="w-4 h-4 text-red-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-            />
-          </svg>
-        );
+        return <IconoAlerta className="text-red-500" />;
       case "sistema":
-        return (
-          <svg
-            className="w-4 h-4 text-blue-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        );
+        return <IconoSistema className="text-blue-500" />;
       default:
-        return (
-          <svg
-            className="w-4 h-4 text-gray-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        );
+        return <IconoDefecto className="text-gray-500" />;
     }
   }, []);
 

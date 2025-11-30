@@ -8,10 +8,10 @@ import Boton from "@/components/controles/Boton";
 import ModalBinance from "@/components/modales/ModalBinance";
 import { useUserId } from "@/hooks/useUserId";
 import {
-  CheckIcon,
-  LinkIcon,
-  LoadingIcon,
-  WarningIcon,
+  IconoCheck,
+  IconoLink,
+  IconoCargando,
+  IconoAviso,
 } from "@/components/controles/Iconos";
 
 // Interfaces
@@ -320,7 +320,7 @@ export default function Inicio() {
             // Subtítulo: Estado de conexión con icono
             subtitulo: balanceData.connected ? (
               <span className="text-green-600">
-                <CheckIcon className="text-green-500" />
+                <IconoCheck className="text-green-500" />
                 Conectado a Binance (Spot y Earn)
               </span>
             ) : (
@@ -405,19 +405,19 @@ export default function Inicio() {
               balanceData.connected ? (
                 // Estado: Conectado - Muestra check y texto
                 <span>
-                  <CheckIcon />
+                  <IconoCheck />
                   Binance Conectado
                 </span>
               ) : balanceData.loading ? (
                 // Estado: Cargando - Muestra spinner y texto
                 <span>
-                  <LoadingIcon />
+                  <IconoCargando />
                   Conectando...
                 </span>
               ) : (
                 // Estado: Desconectado - Muestra icono de enlace y texto
                 <span>
-                  <LinkIcon />
+                  <IconoLink />
                   Conectar Binance
                 </span>
               )
@@ -444,7 +444,7 @@ export default function Inicio() {
           <Boton
             texto={
               <span>
-                <LinkIcon />
+                <IconoLink />
                 Conectar Kraken
               </span>
             }
@@ -467,7 +467,7 @@ export default function Inicio() {
           <Boton
             texto={
               <span>
-                <LinkIcon />
+                <IconoLink />
                 Conectar Coinbase
               </span>
             }
@@ -489,7 +489,7 @@ export default function Inicio() {
         {!userId && (
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-yellow-700 text-sm">
-              <WarningIcon className="text-yellow-500" />
+              <IconoAviso className="text-yellow-500" />
               No se encontró la sesión del usuario. Por favor, inicia sesión
               nuevamente.
             </p>
@@ -503,7 +503,7 @@ export default function Inicio() {
         {balanceData.connected && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-700 text-sm">
-              <CheckIcon className="text-green-500" />
+              <IconoCheck className="text-green-500" />
               Binance conectado correctamente. Tu balance se actualizará
               automáticamente.
             </p>

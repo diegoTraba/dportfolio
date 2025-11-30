@@ -44,18 +44,18 @@
   --custom-accent-hover: #93c5fd;
 
   /* alertas */
-  --alerta-pendiente-bg: #052e16;
-  --alerta-pendiente-border: #14532d;
-  --alerta-activa-bg: #0c4a6e;
-  --alerta-activa-border: #0ea5e9;
-  --badge-pendiente-bg: #451a03;
-  --badge-pendiente-text: #fbbf24;
-  --badge-activo-bg: #064e3b;
-  --badge-activo-text: #34d399;
-  --condicion-arriba-bg: #052e16;
-  --condicion-arriba-text: #4ade80;
-  --condicion-abajo-bg: #450a0a;
-  --condicion-abajo-text: #f87171;
+  --alerta-pendiente-bg: #f0fdf4;
+  --alerta-pendiente-border: #bbf7d0;
+  --alerta-activa-bg: #f0f9ff;
+  --alerta-activa-border: #bae6fd;
+  --badge-pendiente-bg: #fef3c7;
+  --badge-pendiente-text: #92400e;
+  --badge-activo-bg: #d1fae5;
+  --badge-activo-text: #065f46;
+  --condicion-arriba-bg: #dcfce7;
+  --condicion-arriba-text: #166534;
+  --condicion-abajo-bg: #fee2e2;
+  --condicion-abajo-text: #991b1b;
 }
 
 @theme inline {

@@ -4,18 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUserId } from "@/hooks/useUserId";
 
-// Interfaz para definir el tipo de una alerta
-interface Alerta {
-  id?: number;
-  user_id?: string;
-  criptomoneda: string;
-  condicion: "por encima de" | "por debajo de";
-  precio_objetivo: number;
-  precio_actual?: number;
-  estado?: "pendiente" | "activo";
-  creado?: string;
-  activado?: string;
-}
+// Interfaces
+import {Alerta} from "@/interfaces/comun.types"
 
 // Componente que usa useSearchParams - debe estar envuelto en Suspense
 function EditarAlertaContent() {
@@ -28,6 +18,7 @@ function EditarAlertaContent() {
   const esEdicion = !!alertaId;
 
   const [alerta, setAlerta] = useState<Alerta>({
+    id: 0,
     criptomoneda: "BTC",
     condicion: "por encima de",
     precio_objetivo: 0,

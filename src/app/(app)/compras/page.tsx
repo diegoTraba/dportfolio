@@ -4,44 +4,8 @@ import { useState, useEffect } from "react";
 import { useUserId } from "@/hooks/useUserId";
 import TablaCompras from "@/components/controles/tablas/TablaCompras";
 
-// Definir la interfaz basada en lo que devuelve la API
-interface Trade {
-  id: number;
-  orderId: number;
-  symbol: string;
-  price: number;
-  quantity: number;
-  total: number;
-  commission: number;
-  commissionAsset: string;
-  timestamp: number;
-  date: string;
-  isBuyer: boolean;
-  isMaker: boolean;
-}
-
-interface ApiResponse {
-  success: boolean;
-  trades: Trade[];
-  total: number;
-  symbolsScanned: string[];
-  query: {
-    startTime: string | null;
-    endTime: string | null;
-    limit: number;
-  };
-}
-
-// Interfaz para el componente TablaCompras (adaptada a los datos de la API)
-interface Compra {
-  id: number;
-  date: string;
-  product: string;
-  quantity: number;
-  price: number;
-  status: string;
-  total?: number;
-}
+//interfaces
+import {ApiResponse,Compra} from "@/interfaces/comun.types"
 
 export default function Compras() {
   const userId = useUserId();

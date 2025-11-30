@@ -149,7 +149,6 @@ export default function MenuPrincipal() {
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification(notificacion.titulo, {
           body: notificacion.mensaje,
-          icon: "/img/logo_DPortfolio.png",
           tag: notificacion.id.toString(),
         });
       }

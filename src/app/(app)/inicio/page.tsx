@@ -14,38 +14,10 @@ import {
   WarningIcon,
 } from "@/components/controles/Iconos";
 
-/**
- * INTERFAZ: BalanceData
- *
- * Define la estructura de los datos de balance que se manejan en esta página
- * - totalBalance: Balance total en USD del usuario
- * - connected: Si el usuario tiene exchanges conectados
- * - exchangesCount: Número de exchanges conectados
- * - loading: Estado de carga para mostrar spinners
- */
-interface BalanceData {
-  totalBalance: number;
-  connected: boolean;
-  exchangesCount: number;
-  loading: boolean;
-}
+// Interfaces
+import {Alerta} from "@/interfaces/comun.types"
+import {BalanceData} from "@/interfaces/cripto.types"
 
-/**
- * INTERFAZ: Alerta
- *
- * Define la estructura de una alerta
- */
-interface Alerta {
-  id: number;
-  user_id: string;
-  criptomoneda: string;
-  condicion: "por encima de" | "por debajo de";
-  precio_objetivo: number;
-  estado: "pendiente" | "activo";
-  precio_actual?: number;
-  activado?: string;
-  creado: string;
-}
 
 export default function Inicio() {
   // ===========================================================================

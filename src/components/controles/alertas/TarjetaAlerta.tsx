@@ -1,24 +1,6 @@
 // components/alertas/TarjetaAlerta.tsx
 import { IconBell, IconTarget, IconArrowUp, IconArrowDown, IconRefresh } from "@/components/controles/Iconos";
-
-interface Alerta {
-  id: number;
-  user_id: string;
-  criptomoneda: string;
-  condicion: "por encima de" | "por debajo de";
-  precio_objetivo: number;
-  estado: "pendiente" | "activo";
-  precio_actual?: number;
-  activado?: string;
-  creado: string;
-}
-
-interface TarjetaAlertaProps {
-  alerta: Alerta;
-  onEditar: (alerta: Alerta) => void;
-  onReactivar: (id: number) => void;
-  onEliminar: (id: number) => void;
-}
+import {TarjetaAlertaProps} from "@/interfaces/comun.types";
 
 export default function TarjetaAlerta({ alerta, onEditar, onReactivar, onEliminar }: TarjetaAlertaProps) {
   return (

@@ -5,19 +5,7 @@ import { useUserId } from "@/hooks/useUserId";
 import { useRouter } from "next/navigation";
 import TarjetaAlerta from "@/components/controles/alertas/TarjetaAlerta";
 import { IconPlus } from "@/components/controles/Iconos";
-
-// Interfaz para definir el tipo de una alerta
-interface Alerta {
-  id: number;
-  user_id: string;
-  criptomoneda: string;
-  condicion: "por encima de" | "por debajo de";
-  precio_objetivo: number;
-  estado: "pendiente" | "activo";
-  precio_actual?: number;
-  activado?: string;
-  creado: string;
-}
+import {Alerta} from "@/interfaces/comun.types"
 
 export default function Alertas() {
   const [alertas, setAlertas] = useState<Alerta[]>([]);

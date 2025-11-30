@@ -23,6 +23,41 @@ export interface TarjetaAlertaProps {
   onEliminar: (id: number) => void;
 }
 
+// Tipos para las notificaciones
+export interface Notificacion {
+  id: number;
+  tipo: string;
+  titulo: string;
+  mensaje: string;
+  fecha: string;
+  leida: boolean;
+  datos_adicionales?: {
+    criptomoneda: string;
+    precio_objetivo: number;
+    precio_actual: number;
+    condicion: string;
+  };
+}
+
+export interface WSMessage {
+  tipo:
+    | "nueva_notificacion"
+    | "notificaciones_actualizadas"
+    | "ping"
+    | "error_autenticacion";
+  datos:
+    | {
+        id: number;
+        criptomoneda: string;
+        precio_objetivo: number;
+        precio_actual: number;
+        condicion: string;
+      } // para "nueva_notificacion"
+    | Notificacion[] // para "notificaciones_actualizadas"
+    | undefined
+    | string; // para "ping" o "error_autenticacion"
+}
+
 export interface ApiResponse {
   success: boolean;
   trades: Trade[];

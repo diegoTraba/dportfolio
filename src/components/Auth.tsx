@@ -14,7 +14,7 @@ export default function Auth() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  const BACKEND_URL = "https://dportfolio-backend-production.up.railway.app";
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

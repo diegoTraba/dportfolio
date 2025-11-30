@@ -11,40 +11,8 @@ import {
   isWebSocketConnected,
 } from "../lib/webSockedClient";
 
-// Tipos para las notificaciones
-interface Notificacion {
-  id: number;
-  tipo: string;
-  titulo: string;
-  mensaje: string;
-  fecha: string;
-  leida: boolean;
-  datos_adicionales?: {
-    criptomoneda: string;
-    precio_objetivo: number;
-    precio_actual: number;
-    condicion: string;
-  };
-}
-
-interface WSMessage {
-  tipo:
-    | "nueva_notificacion"
-    | "notificaciones_actualizadas"
-    | "ping"
-    | "error_autenticacion";
-  datos:
-    | {
-        id: number;
-        criptomoneda: string;
-        precio_objetivo: number;
-        precio_actual: number;
-        condicion: string;
-      } // para "nueva_notificacion"
-    | Notificacion[] // para "notificaciones_actualizadas"
-    | undefined
-    | string; // para "ping" o "error_autenticacion"
-}
+// Interfaces
+import {Notificacion,WSMessage} from "../interfaces/comun.types"
 
 export default function MenuPrincipal() {
   const rutaActual = usePathname();
@@ -67,7 +35,7 @@ export default function MenuPrincipal() {
   // useRef para mantener el estado entre re-renders
   const wsConnectedRef = useRef(false);
 
-  const BACKEND_URL = "https://dportfolio-backend-production.up.railway.app";
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // Inicializar el nombre del usuario directamente en useState
   const [nombreUsuario, setNombreUsuario] = useState<string>(() => {

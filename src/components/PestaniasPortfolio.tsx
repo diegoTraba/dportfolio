@@ -42,7 +42,7 @@ export const PestaniasPortfolio = ({ pestanias }: PestaniasPortfolioPropiedades)
   const activeTab = getActiveTab();
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-700">
+    <div className="border-b border-[var(--colorTerciario)]">
       <nav className="flex space-x-8" aria-label="Pestanias">
         {pestanias.map((pestania) => (
           <Link

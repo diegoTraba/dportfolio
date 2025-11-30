@@ -44,10 +44,10 @@
   --custom-accent-hover: #93c5fd;
 
   /* alertas */
-  --alerta-pendiente-bg: #f0fdf4;
-  --alerta-pendiente-border: #bbf7d0;
-  --alerta-activa-bg: #f0f9ff;
-  --alerta-activa-border: #bae6fd;
+  --alerta-pendiente-bg: #374151;
+  --alerta-pendiente-border: #1f2937;
+  --alerta-activa-bg: #1f2937;
+  --alerta-activa-border: #1e293b;
   --badge-pendiente-bg: #fef3c7;
   --badge-pendiente-text: #92400e;
   --badge-activo-bg: #d1fae5;

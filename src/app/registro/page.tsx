@@ -104,40 +104,40 @@ export default function Registro() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+    <div className="min-h-screen bg-custom-background text-custom-foreground flex items-center justify-center p-4">
+      <div className="bg-custom-card border border-custom-border p-8 rounded-lg shadow-lg max-w-md w-full">
         <h1 className="text-2xl font-bold mb-6 text-center">Registro</h1>
         
         {serverError && (
           <Aviso 
-          tipo="error"
-          mensaje={serverError}
-          className="mb-4"
-        />
+            tipo="error"
+            mensaje={serverError}
+            className="mb-4"
+          />
         )}
-
+  
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Nombre</label>
+            <label className="block text-sm font-medium mb-2 text-custom-foreground">Nombre</label>
             <input
               type="text"
               placeholder="Tu nombre"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+              className="w-full px-3 py-2 bg-custom-surface border border-custom-border rounded-md text-custom-foreground focus:outline-none focus:ring-2 focus:ring-custom-accent focus:border-transparent transition-all duration-200"
               required
             />
           </div>
-
+  
           <div>
-            <label className="block text-sm font-medium mb-2">Email</label>
+            <label className="block text-sm font-medium mb-2 text-custom-foreground">Email</label>
             <input
               type="email"
               placeholder="tu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`w-full px-3 py-2 bg-gray-700 border rounded-md text-white ${
-                errors.email ? 'border-red-500' : 'border-gray-600'
+              className={`w-full px-3 py-2 bg-custom-surface border rounded-md text-custom-foreground focus:outline-none focus:ring-2 focus:ring-custom-accent focus:border-transparent transition-all duration-200 ${
+                errors.email ? 'border-red-500' : 'border-custom-border'
               }`}
               required
             />
@@ -145,9 +145,9 @@ export default function Registro() {
               <p className="text-red-400 text-sm mt-1">{errors.email}</p>
             )}
           </div>
-
+  
           <div>
-            <label className="block text-sm font-medium mb-2">Contraseña</label>
+            <label className="block text-sm font-medium mb-2 text-custom-foreground">Contraseña</label>
             <CampoContrasenia
               value={password}
               onChange={setPassword}
@@ -156,30 +156,30 @@ export default function Registro() {
             />
             
             {/* Indicadores de requisitos de contraseña */}
-            <div className="mt-2 text-xs text-gray-400">
+            <div className="mt-2 text-xs text-custom-foreground opacity-70">
               <p>La contraseña debe tener:</p>
-              <ul className="list-disc list-inside mt-1">
-                <li className={passwordValidation.requirements.minLength ? 'text-green-400' : ''}>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li className={passwordValidation.requirements.minLength ? 'text-green-500' : 'text-current'}>
                   Al menos 6 caracteres
                 </li>
-                <li className={passwordValidation.requirements.upperCase ? 'text-green-400' : ''}>
+                <li className={passwordValidation.requirements.upperCase ? 'text-green-500' : 'text-current'}>
                   Una mayúscula
                 </li>
-                <li className={passwordValidation.requirements.lowerCase ? 'text-green-400' : ''}>
+                <li className={passwordValidation.requirements.lowerCase ? 'text-green-500' : 'text-current'}>
                   Una minúscula
                 </li>
-                <li className={passwordValidation.requirements.number ? 'text-green-400' : ''}>
+                <li className={passwordValidation.requirements.number ? 'text-green-500' : 'text-current'}>
                   Un número
                 </li>
-                <li className={passwordValidation.requirements.symbol ? 'text-green-400' : ''}>
+                <li className={passwordValidation.requirements.symbol ? 'text-green-500' : 'text-current'}>
                   Un símbolo
                 </li>
               </ul>
             </div>
           </div>
-
+  
           <div>
-            <label className="block text-sm font-medium mb-2">Confirmar Contraseña</label>
+            <label className="block text-sm font-medium mb-2 text-custom-foreground">Confirmar Contraseña</label>
             <CampoContrasenia
               value={confirmPassword}
               onChange={setConfirmPassword}
@@ -187,20 +187,23 @@ export default function Registro() {
               error={errors.confirmPassword}
             />
           </div>
-
+  
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 py-2 px-4 rounded-md font-semibold disabled:opacity-50"
+            className="w-full bg-custom-accent hover:bg-custom-accent-hover text-white py-2 px-4 rounded-md font-semibold disabled:opacity-50 transition-all duration-200"
           >
             {loading ? 'Registrando...' : 'Registrarse'}
           </button>
         </form>
-
+  
         <div className="mt-6 text-center">
-          <p className="text-gray-400">
+          <p className="text-custom-foreground opacity-70">
             ¿Ya tienes cuenta?{' '}
-            <Link href="/" className="text-blue-400 hover:text-blue-300">
+            <Link 
+              href="/" 
+              className="text-custom-accent hover:text-custom-accent-hover font-medium transition-colors duration-200"
+            >
               Inicia sesión aquí
             </Link>
           </p>

@@ -77,7 +77,7 @@ export default function RecuperarContrasena() {
 
   // Función para generar contraseña temporal
   const generarContrasena = (): string => {
-    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*';
     let contrasena = '';
     
     // Asegurar que cumple los requisitos
@@ -96,8 +96,8 @@ export default function RecuperarContrasena() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+    <div className="min-h-screen bg-custom-background text-custom-foreground flex items-center justify-center p-4">
+      <div className="bg-custom-card border border-custom-border p-8 rounded-lg shadow-lg max-w-md w-full">
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <Image 
@@ -114,32 +114,34 @@ export default function RecuperarContrasena() {
         
         {error && (
           <Aviso 
-          tipo="error"
-          mensaje={error}
-          className="mb-4"
-        />
+            tipo="error"
+            mensaje={error}
+            className="mb-4"
+          />
         )}
 
         {message && (
           <Aviso 
-          tipo="exito"
-          mensaje={message}
-          className="mb-4"
-        />
+            tipo="exito"
+            mensaje={message}
+            className="mb-4"
+          />
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Correo Electrónico</label>
+            <label className="block text-sm font-medium mb-2 text-custom-foreground">
+              Correo Electrónico
+            </label>
             <input
               type="email"
               placeholder="tu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white"
+              className="w-full px-3 py-2 bg-custom-surface border border-custom-border rounded-md text-custom-foreground focus:outline-none focus:ring-2 focus:ring-custom-accent focus:border-transparent transition-all duration-200"
               required
             />
-            <p className="text-gray-400 text-sm mt-2">
+            <p className="text-custom-foreground opacity-70 text-sm mt-2">
               Te enviaremos una nueva contraseña a este correo.
             </p>
           </div>
@@ -147,21 +149,24 @@ export default function RecuperarContrasena() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 py-2 px-4 rounded-md font-semibold disabled:opacity-50"
+            className="w-full bg-custom-accent hover:bg-custom-accent-hover text-white py-2 px-4 rounded-md font-semibold disabled:opacity-50 transition-all duration-200"
           >
             {loading ? 'Enviando...' : 'Enviar Nueva Contraseña'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-gray-400">
+          <p className="text-custom-foreground opacity-70">
             ¿Recordaste tu contraseña?{' '}
-            <Link href="/" className="text-blue-400 hover:text-blue-300">
+            <Link 
+              href="/" 
+              className="text-custom-accent hover:text-custom-accent-hover font-medium transition-colors duration-200"
+            >
               Inicia sesión aquí
             </Link>
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

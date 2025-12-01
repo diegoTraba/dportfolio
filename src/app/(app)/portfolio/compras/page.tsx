@@ -106,9 +106,6 @@ export default function Compras() {
 
         {!loading && !error && compras.length > 0 && (
           <>
-            {/* <div className="mb-4 text-sm text-gray-600">
-              Mostrando {compras.length} de {totalCompras} operaciones
-            </div> */}
             <TablaCompras compras={compras} />
           </>
         )}

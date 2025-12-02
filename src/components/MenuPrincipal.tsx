@@ -289,7 +289,7 @@ export default function MenuPrincipal() {
       // Si hay token y userId, llamar al backend para actualizar la fecha
       if (token && userId) {
         // Opción 1: Usando fetch
-        await fetch("https://dportfolio-backend-production.up.railway.app/api/auth/actualizarUltimoAcceso", {
+        await fetch("https://dportfolio-backend-production.up.railway.app/api/usuario/actualizarUltimoAcceso", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

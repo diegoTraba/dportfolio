@@ -1,72 +1,97 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import CampoContrasenia from '@/components/controles/CampoContrasenia'
-import Aviso from '@/components/controles/Aviso'
-import Boton from '@/components/controles/Boton'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import CampoContrasenia from "@/components/controles/CampoContrasenia";
+import Aviso from "@/components/controles/Aviso";
+import Boton from "@/components/controles/Boton";
+import {LoginResponse} from '@/interfaces/comun.types'
 
 export default function Auth() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [estaMonitoreando, setEstaMonitoreando] = useState(false);
+  const router = useRouter();
 
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+  
     try {
+      // 1. Iniciar sesión
       const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const data: LoginResponse & { error?: string } = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.error || "Error al iniciar sesión");
+      }
+  
+      const token = data.token;
+      const userId = data.usuario.id;
+      const ultimoAcceso = data.usuario.ultimoAcceso || null;
+  
+      // Guardar datos básicos del usuario
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("estaLogueado", "true");
+      localStorage.setItem("correoUsuario", data.usuario.email);
+      localStorage.setItem("idUsuario", userId);
+      localStorage.setItem("nombreUsuario", data.usuario.name);
+      localStorage.setItem("ultimoAcceso", ultimoAcceso || "");
+  
+      console.log("✅ Login exitoso, token guardado");
+  
+      // 2. Iniciar servicioMonitoreo precios. 
+      // iniciar-monitoreo-compras incia un cronojob que cada intervaloMS ejecuta un metodo que actualiza las compras del usuario logueado desde ultimoAcceso 
+      // y actualiza la fecha de ultimoAcceso en el usuario
+      const responseMonitoreo = await fetch(`${BACKEND_URL}/api/usuario/iniciar-monitoreo-compras`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ email, password }),
-      })
+        body: JSON.stringify({
+          ultimoAcceso: ultimoAcceso,
+          userId:userId,
+          intervaloMs: 300000 // 5 minutos
+        })
+      });
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al iniciar sesión')
+      const dataMonitoreo = await responseMonitoreo.json();
+      
+      if (dataMonitoreo.success) {
+        setEstaMonitoreando(dataMonitoreo.monitoreoActivo);
+        console.log('Monitoreo de compras iniciado');
       }
 
-      // ✅ GUARDAR TOKEN Y DATOS DE USUARIO EN LOCALSTORAGE
-      localStorage.setItem('authToken', data.token)
-      localStorage.setItem('estaLogueado', 'true')
-      localStorage.setItem('correoUsuario', data.user.email)
-      localStorage.setItem('idUsuario', data.user.id)
-      localStorage.setItem('nombreUsuario', data.user.name)
-
-      console.log('✅ Login exitoso, token guardado:', data.user.name)
-
-      // Login exitoso - redirigir al dashboard
-      router.push('/portfolio')
-      
+      // 3. Redirigir al dashboard
+      router.push("/portfolio");
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError('Error al iniciar sesión: ' + err.message)
+        setError("Error al iniciar sesión: " + err.message);
       } else {
-        setError('Error al iniciar sesión: Error desconocido')
+        setError("Error al iniciar sesión: Error desconocido");
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleLogin} className="space-y-4">
-      {error && (
-        <Aviso 
-          tipo="error"
-          mensaje={error}
-        />
-      )}
-      
+      {error && <Aviso tipo="error" mensaje={error} />}
+
       <div>
         <label className="block text-sm font-medium mb-2 text-custom-foreground">
           Email
@@ -80,7 +105,7 @@ export default function Auth() {
           required
         />
       </div>
-      
+
       <div>
         <label className="block text-sm font-medium mb-2 text-custom-foreground">
           Contraseña
@@ -91,10 +116,10 @@ export default function Auth() {
           placeholder="Contraseña"
         />
       </div>
-      
+
       <Boton
         type="submit"
-        texto={loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+        texto={loading ? "Iniciando sesión..." : "Iniciar Sesión"}
         loading={loading}
         disabled={loading}
         tamaño="grande"
@@ -102,5 +127,5 @@ export default function Auth() {
         className="w-full"
       />
     </form>
-  )
+  );
 }

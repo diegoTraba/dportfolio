@@ -1,4 +1,3 @@
-import {Trade} from "@/interfaces/cripto.types"
 /**
  * INTERFAZ: Alerta
  *
@@ -56,6 +55,18 @@ export interface WSMessage {
     | Notificacion[] // para "notificaciones_actualizadas"
     | undefined
     | string; // para "ping" o "error_autenticacion"
+}
+
+export interface LoginResponse {
+  token: string;
+  usuario: Usuario;
+}
+
+interface Usuario {
+  id: string;
+  email: string;
+  name: string;
+  ultimoAcceso?: string;
 }
 
 export interface ApiResponse {

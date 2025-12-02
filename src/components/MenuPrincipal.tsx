@@ -268,9 +268,9 @@ export default function MenuPrincipal() {
     (ruta: string) => {
       // Si es la ruta de portfolio, activar también para sus subrutas
       if (ruta === "/portfolio") {
-        return rutaActual === ruta || rutaActual.startsWith(ruta + '/');
+        return rutaActual === ruta || rutaActual.startsWith(ruta + "/");
       }
-      
+
       // Para otras rutas, comportamiento normal (comparación exacta)
       return rutaActual === ruta;
     },
@@ -280,15 +280,41 @@ export default function MenuPrincipal() {
   /**
    * Manejar cierre de sesión
    */
-  const manejarCerrarSesion = useCallback(() => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("estaLogueado");
-    localStorage.removeItem("correoUsuario");
-    localStorage.removeItem("idUsuario");
-    localStorage.removeItem("nombreUsuario");
-    setNombreUsuario("");
+  const manejarCerrarSesion = useCallback(async () => {
+    try {
+      // Obtener el token y datos del usuario antes de eliminarlos
+      const token = localStorage.getItem("authToken");
+      const userId = localStorage.getItem("idUsuario");
 
-    navegador.push("/");
+      // Si hay token y userId, llamar al backend para actualizar la fecha
+      if (token && userId) {
+        // Opción 1: Usando fetch
+        await fetch("https://dportfolio-backend-production.up.railway.app/api/auth/actualizarUltimoAcceso", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId }),
+        });
+      }
+    } catch (error) {
+      console.error("Error al actualizar última conexión:", error);
+      // Continuar con el cierre de sesión incluso si falla la actualización
+    } finally {
+      // Limpiar localStorage
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("estaLogueado");
+      localStorage.removeItem("correoUsuario");
+      localStorage.removeItem("idUsuario");
+      localStorage.removeItem("nombreUsuario");
+
+      // Limpiar el estado local
+      setNombreUsuario("");
+
+      // Redirigir al login
+      navegador.push("/");
+    }
   }, [navegador]);
 
   // ==========================================================================
@@ -592,14 +618,14 @@ export default function MenuPrincipal() {
           <nav className="flex space-x-6 items-center">
             <Link
               href="/portfolio"
-              className={`menu-link flex items-center ${estaActiva("/portfolio") ? 'active' : ''}`}
+              className={`menu-link flex items-center ${estaActiva("/portfolio") ? "active" : ""}`}
             >
               <IconoPortfolio className="w-5 h-5 mr-2" />
               Portfolio
             </Link>
             <Link
               href="/alertas"
-              className={`menu-link flex items-center ${estaActiva("/alertas") ? 'active' : ''}`}
+              className={`menu-link flex items-center ${estaActiva("/alertas") ? "active" : ""}`}
             >
               <IconoCampana className="w-5 h-5 mr-2" />
               Alertas

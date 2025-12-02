@@ -1,6 +1,6 @@
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import {Compra} from '@/interfaces/comun.types'
+import { Compra } from '@/interfaces/comun.types'
 
 interface TablaComprasProps {
   compras: Compra[];
@@ -12,34 +12,32 @@ const MobileCards = ({ compras }: { compras: Compra[] }) => (
     {compras.map((compra, index) => (
       <div key={compra.id || index} className="purchase-card">
         <div className="card-row">
-          <span className="label">Fecha:</span>
-          <span className="value">{compra.date}</span>
+          <span className="label">Exchange:</span>
+          <span className="value">{compra.exchange}</span>
         </div>
         <div className="card-row">
           <span className="label">Símbolo:</span>
-          <span className="value">{compra.product}</span>
-        </div>
-        <div className="card-row">
-          <span className="label">Cantidad:</span>
-          <span className="value">{compra.quantity.toFixed(8)}</span>
+          <span className="value">{compra.simbolo}</span>
         </div>
         <div className="card-row">
           <span className="label">Precio:</span>
-          <span className="value">${compra.price.toFixed(2)}</span>
+          <span className="value">${compra.precio.toFixed(2)}</span>
         </div>
+        <div className="card-row">
+          <span className="label">Cantidad:</span>
+          <span className="value">{compra.cantidad.toFixed(4)}</span>
+        </div>
+        <div className="card-row">
+          <span className="label">Total:</span>
+          <span className="value">${compra.total?.toFixed(2)}</span>
+        </div>       
         <div className="card-row">
           <span className="label">Comisión:</span>
           <span className="value">${compra.comision?.toFixed(2) || '0.00'}</span>
         </div>
         <div className="card-row">
-          <span className="label">Total:</span>
-          <span className="value">${((compra.quantity || 0) * (compra.price || 0)).toFixed(2)}</span>
-        </div>
-        <div className="card-row">
-          <span className="label">Tipo:</span>
-          <span className={`status-badge ${compra.status}`}>
-            {compra.status}
-          </span>
+          <span className="label">Fecha:</span>
+          <span className="value">{compra.fechaCompra}</span>
         </div>
       </div>
     ))}
@@ -121,48 +119,71 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
     // Definir baseColumns dentro del useMemo
     const baseColumns: TableColumn<Compra>[] = [
       {
-        name: 'Fecha',
-        selector: (row: Compra) => row.date,
+        name: 'Exchange',
+        selector: (row: Compra) => row.exchange,
         sortable: true,
+        width: '12%',
+        minWidth: '80px',
+        style: {
+          textAlign: 'center',
+          paddingLeft: '8px',
+          paddingRight: '8px',
+        }
       },
       {
         name: 'Símbolo',
-        selector: (row: Compra) => row.product,
+        selector: (row: Compra) => row.simbolo,
         sortable: true,
-      },
-      {
-        name: 'Cantidad',
-        selector: (row: Compra) => row.quantity,
-        sortable: true,
-        format: (row: Compra) => row.quantity.toFixed(8),
+        width: '12%',
+        minWidth: '100px',
+        style: {
+          textAlign: 'center',
+        }
       },
       {
         name: 'Precio',
-        selector: (row: Compra) => row.price,
+        selector: (row: Compra) => row.precio,
         sortable: true,
-        format: (row: Compra) => `$${row.price.toFixed(2)}`,
+        format: (row: Compra) => `$${row.precio.toFixed(2)}`,
+        width: '12%',
+        minWidth: '100px',
+        right: true,
+      },
+      {
+        name: 'Cantidad',
+        selector: (row: Compra) => row.cantidad,
+        sortable: true,
+        format: (row: Compra) => row.cantidad.toFixed(4),
+        width: '15%',
+        minWidth: '120px',
+        right: true,
+      },
+      {
+        name: 'Total',
+        selector: (row: Compra) => row.total,
+        sortable: true,
+        format: (row: Compra) => `$${row.total.toFixed(2)}`,
+        width: '13%',
+        minWidth: '100px',
+        right: true,
       },
       {
         name: 'Comisión',
         selector: (row: Compra) => row.comision || 0,
         sortable: true,
         format: (row: Compra) => `$${(row.comision || 0).toFixed(2)}`,
+        width: '12%',
+        minWidth: '100px',
+        right: true,
       },
       {
-        name: 'Total',
-        selector: (row: Compra) => (row.quantity * row.price),
+        name: 'Fecha',
+        selector: (row: Compra) => row.fechaCompra,
         sortable: true,
-        format: (row: Compra) => `$${(row.quantity * row.price).toFixed(2)}`,
-      },
-      {
-        name: 'Tipo',
-        selector: (row: Compra) => row.status,
-        sortable: true,
-        cell: (row: Compra) => (
-          <span className={`status-badge ${row.status}`}>
-            {row.status}
-          </span>
-        ),
+        width: '14%',
+        minWidth: '120px',
+        format: (row: Compra) => new Date(row.fechaCompra).toLocaleDateString(),
+        right: true,
       },
     ];
 
@@ -190,10 +211,10 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
           </div>
         ),
         sortable: false,
+        width: '5%',
+        minWidth: '50px',
         style: {
-          flexGrow: 0,
-          flexShrink: 0,
-          width: '120px',
+          textAlign: 'center',
         },
       };
 
@@ -201,20 +222,62 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
     }
 
     return baseColumns;
-  }, [isMobile, allVisibleSelected, selectedRows, compras, handleSelectAllVisible, handleRowSelect]);
+  }, [isMobile, allVisibleSelected, selectedRows, handleSelectAllVisible, handleRowSelect]);
 
   // Estilos mínimos para evitar errores de tipo
   const customStyles = {
-    headCells: {
+    table: {
       style: {
+        width: '100%',
+      },
+    },
+    headRow: {
+      style: {
+        backgroundColor: 'var(--header-bg)',
+        color: 'var(--foreground)',
         fontSize: '14px',
         fontWeight: 'bold',
-        backgroundColor: '#f8fafc',
+        minHeight: '52px',
+        borderBottom: '2px solid var(--header-border)',
+      },
+    },
+    headCells: {
+      style: {
+        backgroundColor: 'var(--header-bg)',
+        color: 'var(--foreground)',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        paddingLeft: '8px',
+        paddingRight: '8px',
       },
     },
     cells: {
       style: {
+        backgroundColor: 'var(--card-bg)',
+        color: 'var(--foreground)',
         fontSize: '14px',
+        paddingLeft: '8px',
+        paddingRight: '8px',
+      },
+    },
+    rows: {
+      style: {
+        backgroundColor: 'var(--card-bg)',
+        color: 'var(--foreground)',
+        borderBottom: '1px solid var(--card-border)',
+        '&:hover': {
+          backgroundColor: 'var(--surface) !important',
+        },
+      },
+      stripedStyle: {
+        backgroundColor: 'var(--surface)',
+      },
+    },
+    pagination: {
+      style: {
+        backgroundColor: 'var(--card-bg)',
+        color: 'var(--foreground)',
+        borderTop: '1px solid var(--card-border)',
       },
     },
   };
@@ -227,8 +290,8 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
         <>
           {/* Mostrar información de selección si hay filas seleccionadas */}
           {selectedRows.length > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-700">
+            <div className="mb-4 p-3 bg-alerta-activa border border-alerta-activa rounded-lg">
+              <p className="text-sm text-custom-foreground">
                 {selectedRows.length} fila(s) seleccionada(s)
               </p>
             </div>
@@ -238,7 +301,6 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
             columns={columns}
             data={compras}
             customStyles={customStyles}
-            responsive
             pagination
             paginationPerPage={rowsPerPage}
             paginationRowsPerPageOptions={[10, 25, 50, 100]}
@@ -246,9 +308,9 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
             onChangeRowsPerPage={handlePerRowsChange}
             highlightOnHover
             striped
-            fixedHeader
+            // Eliminamos fixedHeader y fixedHeaderScrollHeight para evitar scroll vertical innecesario
             noDataComponent={
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-custom-foreground opacity-70">
                 No se encontraron operaciones
               </div>
             }

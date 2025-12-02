@@ -60,7 +60,7 @@ export interface WSMessage {
 
 export interface ApiResponse {
   success: boolean;
-  trades: Trade[];
+  compras: Compra[];
   total: number;
   symbolsScanned: string[];
   query: {
@@ -73,11 +73,14 @@ export interface ApiResponse {
 // Interfaz para el componente TablaCompras (adaptada a los datos de la API)
 export interface Compra {
   id: number;
-  date: string;
-  product: string;
-  quantity: number;
+  idUsuario?: number;
+  exchange:string;
+  idOrden?:string;
+  simbolo: string;
+  precio: number;
+  cantidad: number;
+  total: number;
   comision: number;
-  price: number;
-  status: string;
-  total?: number;
+  fechaCompra: string;
+  vendida?: boolean; 
 }

@@ -26,7 +26,7 @@ export default function Compras() {
         setError(null);
 
         const response = await fetch(
-          `https://dportfolio-backend-production.up.railway.app/api/binance/all-trades/${userId}?limit=100`
+          `https://dportfolio-backend-production.up.railway.app/api/binance/compras-activas/${userId}?limit=100`
         );
 
         if (!response.ok) {
@@ -43,24 +43,27 @@ export default function Compras() {
           throw new Error("La API no devolvió una respuesta exitosa");
         }
 
-        // Validar que trades es un array
-        if (!Array.isArray(data.trades)) {
+        // Validar que compras es un array
+        if (!Array.isArray(data.compras)) {
           throw new Error("Formato de trades inválido");
         }
 
         // Transformar los trades de la API al formato que espera TablaCompras
-        const comprasTransformadas: Compra[] = data.trades.map((trade) => ({
-          id: trade.id,
-          date: new Date(trade.timestamp).toLocaleDateString("es-ES"),
-          product: trade.symbol,
-          quantity: trade.quantity,
-          comision: trade.commission,
-          price: trade.price,
-          status: trade.isBuyer ? "comprado" : "vendido", // Podemos derivar el estado de isBuyer
+        const comprasTransformadas: Compra[] = data.compras.map((compra) => ({
+          id: compra.id,
+          exchange: compra.exchange,
+          idOrden: compra.idOrden,
+          simbolo: compra.simbolo,
+          precio: compra.precio,
+          cantidad: compra.cantidad,
+          total: compra.total,
+          comision: compra.comision,
+          fechaCompra: new Date(compra.fechaCompra).toLocaleDateString("es-ES"),
+          vendida: compra.vendida
         }));
 
         setCompras(comprasTransformadas);
-        setTotalCompras(data.total);
+        setTotalCompras(data.compras.length);
       } catch (err) {
         console.error("Error fetching compras:", err);
         setError(

@@ -207,6 +207,24 @@ export default function Portfolio() {
         );
       }
 
+      const responseCompras = await fetch(
+        `https://dportfolio-backend-production.up.railway.app/api/binance/all-trades/${userId}?limit=100`
+      );
+
+      if (!responseCompras.ok) {
+        const errorText = await responseCompras.text();
+        throw new Error(
+          `Error ${responseCompras.status}: ${errorText || responseCompras.statusText}`
+        );
+      }
+
+      const dataCompras = await responseCompras.json();
+
+      // Validar que la respuesta fue exitosa
+      // if (!dataCompras.success) {
+        // throw new Error("La API no devolvió una respuesta exitosa");
+      // }
+
       // ÉXITO: Actualizar estado con los nuevos datos de Binance
       setBalanceData({
         totalBalance: data.totalBalance || 0, // Nuevo balance total
@@ -214,6 +232,7 @@ export default function Portfolio() {
         exchangesCount: 1, // Tiene 1 exchange conectado
         loading: false, // Quitar estado de carga
       });
+
     } catch (error) {
       // ERROR: Mostrar en consola y quitar estado de carga
       console.error("Error completo connecting Binance:", error);

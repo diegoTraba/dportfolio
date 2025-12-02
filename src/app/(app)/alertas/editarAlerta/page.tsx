@@ -77,7 +77,7 @@ function EditarAlertaContent() {
   const obtenerPrecioActual = async (cripto: string) => {
     try {
       const response = await fetch(
-        `https://dportfolio-backend-production.up.railway.app/api/alertas/price/${cripto}USDT`
+        `https://dportfolio-backend-production.up.railway.app/api/alertas/price/${cripto}USDC`
       );
 
       if (response.ok) {

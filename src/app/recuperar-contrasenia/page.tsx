@@ -24,7 +24,7 @@ export default function RecuperarContrasena() {
     try {
       // Verificar si el usuario existe
       const { data: user, error: userError } = await supabase
-        .from('users')
+        .from('usuarios')
         .select('id, email, name')
         .eq('email', email)
         .single()
@@ -44,7 +44,7 @@ export default function RecuperarContrasena() {
 
       // Actualizar contraseña en la BD
       const { error: updateError } = await supabase
-        .from('users')
+        .from('usuarios')
         .update({ password: hashedPassword })
         .eq('id', user.id)
 

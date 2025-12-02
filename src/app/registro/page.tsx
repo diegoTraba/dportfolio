@@ -62,7 +62,7 @@ export default function Registro() {
     try {
       // Verificar si el usuario ya existe
       const { data: existingUser, error: checkError } = await supabase
-        .from("users")
+        .from("usuarios")
         .select("id")
         .eq("email", email)
         .single();
@@ -79,11 +79,11 @@ export default function Registro() {
 
       // Crear el usuario
       const { data: newUser, error: insertError } = await supabase
-        .from("users")
+        .from("usuarios")
         .insert([
           {
             email: email,
-            name: name,
+            nombre: name,
             password: hashedPassword,
           },
         ])

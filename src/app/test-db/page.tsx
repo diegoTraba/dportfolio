@@ -3,8 +3,8 @@ import Link from 'next/link'
 
 export default async function TestDB() {
   // Consulta simple sin autenticación
-  const { data: users, error } = await supabase
-    .from('users')
+  const { data: usuarios, error } = await supabase
+    .from('usuarios')
     .select('*')
     .limit(5)
 
@@ -20,10 +20,10 @@ export default async function TestDB() {
       ) : (
         <div className="bg-gray-800 p-6 rounded-lg">
           <h2 className="text-lg font-semibold mb-4">
-            Conexión exitosa! Usuarios en BD: {users?.length || 0}
+            Conexión exitosa! Usuarios en BD: {usuarios?.length || 0}
           </h2>
           <pre className="bg-gray-700 p-4 rounded overflow-auto">
-            {JSON.stringify(users, null, 2)}
+            {JSON.stringify(usuarios, null, 2)}
           </pre>
         </div>
       )}

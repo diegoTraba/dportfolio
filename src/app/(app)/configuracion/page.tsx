@@ -83,8 +83,8 @@ export default function Configuracion() {
 
         // Consultar la base de datos para obtener las preferencias del usuario
         const { data: user, error } = await supabase
-          .from("users")
-          .select("email_notification, push_notification, main_currency")
+          .from("usuarios")
+          .select("notificacionesEmail, notificacionesPush, main_currency")
           .eq("id", userId)
           .single(); // Obtener un solo registro (el usuario actual)
 
@@ -93,8 +93,8 @@ export default function Configuracion() {
         // Si se encontró el usuario, actualizar el estado con sus preferencias
         if (user) {
           setPreferences({
-            email_notification: user.email_notification ?? true, // Si es null, usar true
-            push_notification: user.push_notification ?? true, // Si es null, usar true
+            email_notification: user.notificacionesEmail ?? true, // Si es null, usar true
+            push_notification: user.notificacionesPush ?? true, // Si es null, usar true
             main_currency: user.main_currency || "USD", // Si es null/empty, usar 'USD'
           });
         }
@@ -138,7 +138,7 @@ export default function Configuracion() {
 
       // Actualizar el campo específico en la base de datos
       const { error } = await supabase
-        .from("users")
+        .from("usuarios")
         .update({ [field]: value }) // Campo dinámico con el valor nuevo
         .eq("id", userId); // Solo actualizar el usuario actual
 
@@ -273,7 +273,7 @@ export default function Configuracion() {
 
       // Obtener datos completos del usuario desde la base de datos
       const { data: user, error: userError } = await supabase
-        .from("users")
+        .from("usuarios")
         .select("*")
         .eq("id", userId)
         .single();
@@ -305,7 +305,7 @@ export default function Configuracion() {
 
       // Actualizar el campo password en la base de datos
       const { error: updateError } = await supabase
-        .from("users")
+        .from("usuarios")
         .update({ password: hashedPassword })
         .eq("id", userId);
 

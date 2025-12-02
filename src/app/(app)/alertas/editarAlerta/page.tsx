@@ -38,6 +38,7 @@ function EditarAlertaContent() {
     "BNB",
     "LINK",
   ];
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // Cargar datos de la alerta si estamos en modo edición
   useEffect(() => {
@@ -57,7 +58,7 @@ function EditarAlertaContent() {
     try {
       setLoading(true);
       const response = await fetch(
-        `https://dportfolio-backend-production.up.railway.app/api/alertas/detalle/${alertaId}`
+        `${BACKEND_URL}/api/alertas/detalle/${alertaId}`
       );
 
       if (!response.ok) {
@@ -77,7 +78,7 @@ function EditarAlertaContent() {
   const obtenerPrecioActual = async (cripto: string) => {
     try {
       const response = await fetch(
-        `https://dportfolio-backend-production.up.railway.app/api/alertas/price/${cripto}USDC`
+        `${BACKEND_URL}/api/alertas/price/${cripto}USDC`
       );
 
       if (response.ok) {
@@ -113,8 +114,8 @@ function EditarAlertaContent() {
       setLoading(true);
 
       const url = esEdicion
-        ? `https://dportfolio-backend-production.up.railway.app/api/alertas/${alertaId}`
-        : "https://dportfolio-backend-production.up.railway.app/api/alertas";
+        ? `${BACKEND_URL}/api/alertas/${alertaId}`
+        : `${BACKEND_URL}/api/alertas`;
 
       const method = esEdicion ? "PUT" : "POST";
 

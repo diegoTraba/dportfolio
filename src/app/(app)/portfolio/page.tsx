@@ -52,6 +52,7 @@ export default function Portfolio() {
    * - Se usa para hacer llamadas a la API específicas del usuario
    */
   const userId = useUserId();
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // ===========================================================================
   // EFECTOS (useEffect)
@@ -85,7 +86,7 @@ export default function Portfolio() {
 
         // LLAMADA A LA API: Obtener balance del usuario desde Binance
         const response = await fetch(
-          `https://dportfolio-backend-production.up.railway.app/api/binance/balance/${userId}`
+          `${BACKEND_URL}/api/binance/balance/${userId}`
         );
         const data = await response.json();
 
@@ -133,7 +134,7 @@ export default function Portfolio() {
         }
 
         const response = await fetch(
-          `https://dportfolio-backend-production.up.railway.app/api/alertas/${userId}`
+          `${BACKEND_URL}/api/alertas/${userId}`
         );
 
         if (response.ok) {
@@ -183,7 +184,7 @@ export default function Portfolio() {
 
       // LLAMADA A LA API: Conectar cuenta de Binance
       const response = await fetch(
-        "https://dportfolio-backend-production.up.railway.app/api/binance/connect",
+        `${BACKEND_URL}/api/binance/connect`,
         {
           method: "POST",
           headers: {
@@ -208,7 +209,7 @@ export default function Portfolio() {
       }
 
       const responseCompras = await fetch(
-        `https://dportfolio-backend-production.up.railway.app/api/binance/all-trades/${userId}?limit=100`
+        `${BACKEND_URL}/api/binance/all-trades/${userId}?limit=100`
       );
 
       if (!responseCompras.ok) {

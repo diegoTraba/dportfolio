@@ -14,6 +14,7 @@ export default function Alertas() {
 
   const userId = useUserId();
   const router = useRouter();
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // Cargar alertas al montar el componente
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function Alertas() {
       }
 
       const response = await fetch(
-        `https://dportfolio-backend-production.up.railway.app/api/alertas/${userId}`
+        `${BACKEND_URL}/api/alertas/${userId}`
       );
 
       if (!response.ok) {
@@ -52,7 +53,7 @@ export default function Alertas() {
   const handleReactivarAlerta = async (id: number) => {
     try {
       const response = await fetch(
-        `https://dportfolio-backend-production.up.railway.app/api/alertas/${id}/reactivar`,
+        `${BACKEND_URL}/api/alertas/${id}/reactivar`,
         {
           method: "PUT",
           headers: {
@@ -91,7 +92,7 @@ export default function Alertas() {
 
     try {
       const response = await fetch(
-        `https://dportfolio-backend-production.up.railway.app/api/alertas/${id}`,
+        `${BACKEND_URL}/api/alertas/${id}`,
         {
           method: "DELETE",
         }

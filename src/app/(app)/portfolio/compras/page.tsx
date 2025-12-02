@@ -13,6 +13,7 @@ export default function Compras() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCompras, setTotalCompras] = useState(0);
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
     const fetchCompras = async () => {
@@ -26,7 +27,7 @@ export default function Compras() {
         setError(null);
 
         const response = await fetch(
-          `https://dportfolio-backend-production.up.railway.app/api/binance/compras-activas/${userId}?limit=100`
+          `${BACKEND_URL}/api/binance/compras-activas/${userId}?limit=100`
         );
 
         if (!response.ok) {

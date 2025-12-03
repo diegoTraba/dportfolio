@@ -1,6 +1,13 @@
 // components/alertas/TarjetaAlerta.tsx
-import { IconoCampana, IconoObjetivo, IconoFlechaArriba, IconoFleChaAbajo, IconoRefrescar } from "@/components/controles/Iconos";
-import {TarjetaAlertaProps} from "@/interfaces/comun.types";
+import { 
+  IconoCampana, 
+  IconoObjetivo, 
+  IconoFlechaArriba, 
+  IconoFleChaAbajo, 
+  IconoRefrescar 
+} from "@/components/controles/Iconos";
+import BotonPersonalizado from "@/components/controles/Boton"; // Importar el componente Boton
+import { TarjetaAlertaProps } from "@/interfaces/comun.types";
 
 export default function TarjetaAlerta({ alerta, onEditar, onReactivar, onEliminar }: TarjetaAlertaProps) {
   return (
@@ -87,34 +94,50 @@ export default function TarjetaAlerta({ alerta, onEditar, onReactivar, onElimina
       <div className="mt-4 flex space-x-2">
         {alerta.estado === 'activo' ? (
           <>
-            <button 
+            {/* Botón Reactivar - usa valores por defecto */}
+            <BotonPersonalizado
+              texto={
+                <div className="flex items-center justify-center space-x-1">
+                  <IconoRefrescar />
+                  <span>Reactivar</span>
+                </div>
+              }
               onClick={() => onReactivar(alerta.id)}
-              className="flex-1 bg-custom-accent hover:bg-custom-accent-hover text-white py-2 px-3 rounded text-sm transition-colors duration-200 flex items-center justify-center space-x-1"
-            >
-              <IconoRefrescar />
-              <span>Reactivar</span>
-            </button>
-            <button 
+              tamaño="pequeno"
+              className="flex-1"
+            />
+            
+            {/* Botón Eliminar - con color rojo personalizado */}
+            <BotonPersonalizado
+              texto="Eliminar"
               onClick={() => onEliminar(alerta.id)}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded text-sm transition-colors duration-200"
-            >
-              Eliminar
-            </button>
+              colorFondo="#ef4444" // Rojo tailwind red-500
+              colorHover="#dc2626" // Rojo tailwind red-600
+              colorTexto="white"
+              tamaño="pequeno"
+              className="flex-1"
+            />
           </>
         ) : (
           <>
-            <button 
+            {/* Botón Editar - usa valores por defecto */}
+            <BotonPersonalizado
+              texto="Editar"
               onClick={() => onEditar(alerta)}
-              className="flex-1 bg-custom-accent hover:bg-custom-accent-hover text-white py-2 px-3 rounded text-sm transition-colors duration-200"
-            >
-              Editar
-            </button>
-            <button 
+              tamaño="pequeno"
+              className="flex-1"
+            />
+            
+            {/* Botón Eliminar - con color rojo personalizado */}
+            <BotonPersonalizado
+              texto="Eliminar"
               onClick={() => onEliminar(alerta.id)}
-              className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded text-sm transition-colors duration-200"
-            >
-              Eliminar
-            </button>
+              colorFondo="#ef4444" // Rojo tailwind red-500
+              colorHover="#dc2626" // Rojo tailwind red-600
+              colorTexto="white"
+              tamaño="pequeno"
+              className="flex-1"
+            />
           </>
         )}
       </div>

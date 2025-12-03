@@ -65,7 +65,7 @@ export interface LoginResponse {
 interface Usuario {
   id: string;
   email: string;
-  name: string;
+  nombre: string;
   ultimoAcceso?: string;
 }
 

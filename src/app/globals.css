@@ -9,11 +9,11 @@
   --card-border: #e5e7eb;
   --surface: #f9fafb;
 
-  --colorPrimario: #2d79b7;
+  --colorPrimario: #127db2;
   --colorSecundario: #2e3687;
   --colorTerciario: #12b296;
 
-  --custom-accent: #2d79b7;
+  --custom-accent: #127db2;
   --custom-accent-hover: #1e5a8a;
 
    /* alertas */
@@ -168,6 +168,11 @@ body {
 
 .text-condicion-abajo {
   color: var(--condicion-abajo-text);
+}
+
+.title-custom-foreground {
+  color: var(--colorTerciario);
+  font-weight: 700;
 }
 
 /*  ////////////////// Tablas ///////////////////*/

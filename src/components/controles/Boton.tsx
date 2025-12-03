@@ -1,85 +1,69 @@
 // components/controles/Boton.tsx
-'use client'
+"use client";
 
-import { ButtonHTMLAttributes, ReactNode } from 'react'
+import { ButtonHTMLAttributes, ReactNode } from "react";
 
-interface BotonPersonalizadoProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  texto: string | ReactNode
-  colorFondo?: string
-  colorHover?: string
-  colorTexto?: string
-  colorFondoDisabled?: string
-  colorTextoDisabled?: string
-  tamaño?: 'pequeno' | 'mediano' | 'grande'
-  variante?: 'primario' | 'secundario' | 'acento'
-  loading?: boolean
+interface BotonPersonalizadoProps
+  extends ButtonHTMLAttributes<HTMLButtonElement> {
+  texto: string | ReactNode;
+  colorFondo?: string;
+  colorHover?: string;
+  colorTexto?: string;
+  colorFondoDisabled?: string;
+  colorTextoDisabled?: string;
+  tamaño?: "pequeno" | "mediano" | "grande";
+  loading?: boolean;
+  bold?: boolean; // Nuevo parámetro
 }
 
 export default function BotonPersonalizado({
   texto,
   colorFondo,
   colorHover,
-  colorTexto = 'white',
+  colorTexto = "white",
   colorFondoDisabled,
   colorTextoDisabled,
-  tamaño = 'mediano',
-  variante = 'primario',
+  tamaño = "mediano",
   loading = false,
+  bold = false, // Valor por defecto: false
   disabled,
-  className = '',
+  className = "",
   ...props
 }: BotonPersonalizadoProps) {
-  
-  // Colores por defecto según la variante (en RGB)
-  const coloresPorDefecto = {
-    primario: {
-      fondo: 'rgb(45, 121, 183)',
-      hover: 'rgb(37, 105, 165)',
-      fondoDisabled: 'rgb(156, 163, 175)',
-      textoDisabled: 'rgb(107, 114, 128)'
-    },
-    secundario: {
-      fondo: 'rgb(47, 54, 138)',
-      hover: 'rgb(37, 43, 111)',
-      fondoDisabled: 'rgb(156, 163, 175)',
-      textoDisabled: 'rgb(107, 114, 128)'
-    },
-    acento: {
-      fondo: 'rgb(18, 179, 148)',
-      hover: 'rgb(15, 156, 127)',
-      fondoDisabled: 'rgb(156, 163, 175)',
-      textoDisabled: 'rgb(107, 114, 128)'
-    }
-  }
-
   // Tamaños predefinidos
   const tamaños = {
-    pequeno: 'px-3 py-1 text-sm',
-    mediano: 'px-4 py-2 text-base',
-    grande: 'px-6 py-3 text-lg'
-  }
+    pequeno: "px-3 py-1 text-sm",
+    mediano: "px-4 py-2 text-base",
+    grande: "px-6 py-3 text-lg",
+  };
 
-  const isDisabled = disabled || loading
+  const isDisabled = disabled || loading;
 
-  // Determinar colores según el estado
-  const fondo = isDisabled 
-    ? colorFondoDisabled || coloresPorDefecto[variante].fondoDisabled
-    : colorFondo || coloresPorDefecto[variante].fondo
+  // Valores por defecto
+  const fondoDefault = "var(--colorPrimario)";
+  const hoverDefault = "var(--custom-accent-hover)";
+  const fondoDisabledDefault = "rgb(156, 163, 175)";
+  const textoDisabledDefault = "rgb(107, 114, 128)";
+
+  const fondo = isDisabled
+    ? colorFondoDisabled || fondoDisabledDefault
+    : colorFondo || fondoDefault;
 
   const textoColor = isDisabled
-    ? colorTextoDisabled || coloresPorDefecto[variante].textoDisabled
-    : colorTexto
+    ? colorTextoDisabled || textoDisabledDefault
+    : colorTexto;
 
-  const hoverColor = colorHover || coloresPorDefecto[variante].hover
+  const hoverColor = colorHover || hoverDefault;
 
   return (
     <button
       {...props}
       disabled={isDisabled}
       className={`
-        rounded-md font-semibold transition-all duration-200 
+        rounded-md transition-all duration-200 
         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
         flex items-center justify-center
+        ${bold ? 'font-semibold' : ''}
         ${tamaños[tamaño]}
         ${isDisabled ? 'cursor-not-allowed' : 'hover:brightness-110'}
         ${className}
@@ -112,5 +96,5 @@ export default function BotonPersonalizado({
         texto
       )}
     </button>
-  )
+  );
 }

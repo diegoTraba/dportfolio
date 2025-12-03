@@ -127,8 +127,8 @@ export default function MenuPrincipal() {
       // Verificar si el navegador soporta notificaciones y tenemos permisos
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification(notificacion.titulo, {
-          body: notificacion.mensaje,
-          tag: notificacion.id.toString(),
+          body: notificacion.mensaje
+          // tag: notificacion.id.toString(),
         });
       }
     },
@@ -268,6 +268,9 @@ export default function MenuPrincipal() {
     (ruta: string) => {
       // Si es la ruta de portfolio, activar también para sus subrutas
       if (ruta === "/portfolio") {
+        return rutaActual === ruta || rutaActual.startsWith(ruta + "/");
+      }
+      else if (ruta === "/alertas") {
         return rutaActual === ruta || rutaActual.startsWith(ruta + "/");
       }
 

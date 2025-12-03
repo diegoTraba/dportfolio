@@ -47,7 +47,7 @@ export default function Auth() {
       localStorage.setItem("estaLogueado", "true");
       localStorage.setItem("correoUsuario", data.usuario.email);
       localStorage.setItem("idUsuario", userId);
-      localStorage.setItem("nombreUsuario", data.usuario.name);
+      localStorage.setItem("nombreUsuario", data.usuario.nombre);
       localStorage.setItem("ultimoAcceso", ultimoAcceso || "");
   
       console.log("✅ Login exitoso, token guardado");
@@ -123,7 +123,6 @@ export default function Auth() {
         loading={loading}
         disabled={loading}
         tamaño="grande"
-        variante="primario"
         className="w-full"
       />
     </form>

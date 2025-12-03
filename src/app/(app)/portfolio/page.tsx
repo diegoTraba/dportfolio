@@ -453,6 +453,7 @@ export default function Portfolio() {
             onClick={handleOpenModal}
             disabled={balanceData.connected || balanceData.loading || !userId}
             loading={balanceData.loading}
+            bold={true}
           />
 
           {/* 
@@ -476,6 +477,7 @@ export default function Portfolio() {
             colorTextoDisabled="white"
             tamaño="mediano"
             disabled={true} // Deshabilitado hasta implementación
+            bold={true}
           />
 
           {/* 
@@ -499,6 +501,7 @@ export default function Portfolio() {
             colorTextoDisabled="white"
             tamaño="mediano"
             disabled={true} // Deshabilitado hasta implementación
+            bold={true}
           />
         </div>
 

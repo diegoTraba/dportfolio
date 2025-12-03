@@ -5,7 +5,8 @@ import { useUserId } from "@/hooks/useUserId";
 import { useRouter } from "next/navigation";
 import TarjetaAlerta from "@/components/controles/alertas/TarjetaAlerta";
 import { IconoMas } from "@/components/controles/Iconos";
-import {Alerta} from "@/interfaces/comun.types"
+import { Alerta } from "@/interfaces/comun.types";
+import BotonPersonalizado from "@/components/controles/Boton"; // Importar el componente Boton
 
 export default function Alertas() {
   const [alertas, setAlertas] = useState<Alerta[]>([]);
@@ -31,9 +32,7 @@ export default function Alertas() {
         return;
       }
 
-      const response = await fetch(
-        `${BACKEND_URL}/api/alertas/${userId}`
-      );
+      const response = await fetch(`${BACKEND_URL}/api/alertas/${userId}`);
 
       if (!response.ok) {
         throw new Error("Error al cargar las alertas");
@@ -52,15 +51,12 @@ export default function Alertas() {
 
   const handleReactivarAlerta = async (id: number) => {
     try {
-      const response = await fetch(
-        `${BACKEND_URL}/api/alertas/${id}/reactivar`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/api/alertas/${id}/reactivar`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Error al reactivar la alerta");
@@ -91,12 +87,9 @@ export default function Alertas() {
     }
 
     try {
-      const response = await fetch(
-        `${BACKEND_URL}/api/alertas/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`${BACKEND_URL}/api/alertas/${id}`, {
+        method: "DELETE",
+      });
 
       if (!response.ok) {
         throw new Error("Error al eliminar la alerta");
@@ -142,39 +135,47 @@ export default function Alertas() {
           {/* Header con título y botón */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-custom-text">
+              <h1 className="text-3xl font-bold title-custom-foreground">
                 Alertas Cripto
               </h1>
               <p className="text-custom-text-secondary mt-2">
                 Gestiona tus alertas de precios de criptomonedas
               </p>
             </div>
-            <button
+            {/* Botón de añadir nueva alerta - usa valores por defecto */}
+            <BotonPersonalizado
+              texto={
+                <div className="flex items-center space-x-2">
+                  <IconoMas />
+                  <span>Alerta</span>
+                </div>
+              }
               onClick={handleNuevaAlerta}
-              className="bg-custom-accent hover:bg-custom-accent-hover text-white px-6 py-3 rounded-lg font-medium flex items-center space-x-2 transition-colors duration-200 shadow-md"
-            >
-              <IconoMas />
-              <span>Añadir Nueva Alerta</span>
-            </button>
+              tamaño="grande"
+              className="shadow-md flex items-center space-x-2"
+            />
           </div>
 
           {/* Mostrar error si existe */}
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
               <p>{error}</p>
-              <button
+              <BotonPersonalizado
+                texto="Reintentar"
                 onClick={cargarAlertas}
-                className="mt-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-              >
-                Reintentar
-              </button>
+                colorFondo="#ef4444"
+                colorHover="#dc2626"
+                colorTexto="white"
+                tamaño="pequeno"
+                className="mt-2"
+              />
             </div>
           )}
 
           {/* Surface con las tarjetas de alertas */}
           <div className="bg-custom-surface p-6 rounded-lg shadow-lg border border-custom-border">
             <div className="mb-6">
-              <h2 className="text-xl font-semibold text-custom-text">
+              <h2 className="text-xl title-custom-foreground">
                 Alertas Configuradas
               </h2>
               <p className="text-custom-text-secondary text-sm mt-1">

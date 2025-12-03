@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import CampoContrasenia from "@/components/controles/CampoContrasenia";
 import Aviso from "@/components/controles/Aviso";
 import Boton from "@/components/controles/Boton";
-import {LoginResponse} from '@/interfaces/comun.types'
+import { LoginResponse } from "@/interfaces/comun.types";
+import {
+  startActivityTracking,
+  updateActivityTime,
+} from "@/utils/monitoreoActividad";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -21,7 +25,7 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     setError("");
-  
+
     try {
       // 1. Iniciar sesión
       const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
@@ -31,17 +35,17 @@ export default function Auth() {
         },
         body: JSON.stringify({ email, password }),
       });
-  
+
       const data: LoginResponse & { error?: string } = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(data.error || "Error al iniciar sesión");
       }
-  
+
       const token = data.token;
       const userId = data.usuario.id;
       const ultimoAcceso = data.usuario.ultimoAcceso || null;
-  
+
       // Guardar datos básicos del usuario
       localStorage.setItem("authToken", token);
       localStorage.setItem("estaLogueado", "true");
@@ -49,30 +53,36 @@ export default function Auth() {
       localStorage.setItem("idUsuario", userId);
       localStorage.setItem("nombreUsuario", data.usuario.nombre);
       localStorage.setItem("ultimoAcceso", ultimoAcceso || "");
-  
+
       console.log("✅ Login exitoso, token guardado");
-  
-      // 2. Iniciar servicioMonitoreo precios. 
-      // iniciar-monitoreo-compras incia un cronojob que cada intervaloMS ejecuta un metodo que actualiza las compras del usuario logueado desde ultimoAcceso 
+      // IMPORTANTE: Iniciar el tracker de actividad
+      startActivityTracking();
+      updateActivityTime(); // Registrar actividad inmediata
+
+      // 2. Iniciar servicioMonitoreo precios.
+      // iniciar-monitoreo-compras incia un cronojob que cada intervaloMS ejecuta un metodo que actualiza las compras del usuario logueado desde ultimoAcceso
       // y actualiza la fecha de ultimoAcceso en el usuario
-      const responseMonitoreo = await fetch(`${BACKEND_URL}/api/usuario/iniciar-monitoreo-compras`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          ultimoAcceso: ultimoAcceso,
-          userId:userId,
-          intervaloMs: 300000 // 5 minutos
-        })
-      });
+      const responseMonitoreo = await fetch(
+        `${BACKEND_URL}/api/usuario/iniciar-monitoreo-compras`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            ultimoAcceso: ultimoAcceso,
+            userId: userId,
+            intervaloMs: 300000, // 5 minutos
+          }),
+        }
+      );
 
       const dataMonitoreo = await responseMonitoreo.json();
-      
+
       if (dataMonitoreo.success) {
         setEstaMonitoreando(dataMonitoreo.monitoreoActivo);
-        console.log('Monitoreo de compras iniciado');
+        console.log("Monitoreo de compras iniciado");
       }
 
       // 3. Redirigir al dashboard

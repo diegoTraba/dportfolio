@@ -3,7 +3,7 @@ import {
   IconoCampana, 
   IconoObjetivo, 
   IconoFlechaArriba, 
-  IconoFleChaAbajo, 
+  IconoFlechaAbajo, 
   IconoRefrescar 
 } from "@/components/controles/Iconos";
 import BotonPersonalizado from "@/components/controles/Boton"; // Importar el componente Boton
@@ -51,7 +51,7 @@ export default function TarjetaAlerta({ alerta, onEditar, onReactivar, onElimina
                 : 'bg-condicion-abajo text-condicion-abajo'
             }`}
           >
-            {alerta.condicion === 'por encima de' ? <IconoFlechaArriba /> : <IconoFleChaAbajo />}
+            {alerta.condicion === 'por encima de' ? <IconoFlechaArriba /> : <IconoFlechaAbajo />}
             <span>
               {alerta.condicion === 'por encima de' ? 'Por encima' : 'Por debajo'}
             </span>

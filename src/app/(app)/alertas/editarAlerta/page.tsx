@@ -3,6 +3,13 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUserId } from "@/hooks/useUserId";
+import BotonPersonalizado from "@/components/controles/Boton";
+// Importar iconos
+import {
+  IconoFlechaArriba,
+  IconoFlechaAbajo,
+  IconoPrecio
+} from "@/components/controles/Iconos";
 
 // Interfaces
 import {Alerta} from "@/interfaces/comun.types"
@@ -210,55 +217,6 @@ function EditarAlertaContent() {
     }));
   };
 
-  // Iconos
-  const IconArrowUp = () => (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M5 10l7-7m0 0l7 7m-7-7v18"
-      />
-    </svg>
-  );
-
-  const IconArrowDown = () => (
-    <svg
-      className="w-4 h-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 14l-7 7m0 0l-7-7m7 7V3"
-      />
-    </svg>
-  );
-
-  const IconPrice = () => (
-    <svg
-      className="w-5 h-5"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-      />
-    </svg>
-  );
-
   if (loading && esEdicion) {
     return (
       <>
@@ -279,7 +237,7 @@ function EditarAlertaContent() {
       <main className="container mx-auto p-4">
         <div className="max-w-md mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-custom-text">
+            <h1 className="text-3xl title-custom-foreground">
               {esEdicion ? "Editar Alerta" : "Nueva Alerta"}
             </h1>
             <p className="text-custom-text-secondary mt-2">
@@ -365,7 +323,7 @@ function EditarAlertaContent() {
                       : "bg-custom-background border-custom-border text-custom-text hover:bg-gray-50"
                   }`}
                 >
-                  <IconArrowUp />
+                  <IconoFlechaArriba />
                   <span>Por encima de</span>
                 </button>
                 <button
@@ -379,7 +337,7 @@ function EditarAlertaContent() {
                       : "bg-custom-background border-custom-border text-custom-text hover:bg-gray-50"
                   }`}
                 >
-                  <IconArrowDown />
+                  <IconoFlechaAbajo />
                   <span>Por debajo de</span>
                 </button>
               </div>
@@ -395,7 +353,7 @@ function EditarAlertaContent() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <IconPrice />
+                  <IconoPrecio className="w-5 h-5" />
                 </div>
                 <input
                   type="number"
@@ -416,30 +374,27 @@ function EditarAlertaContent() {
 
             {/* Botones */}
             <div className="flex space-x-3 pt-4">
-              <button
-                type="button"
+              <BotonPersonalizado
+                texto="Cancelar"
+                colorFondo="rgb(107, 114, 128)" // gray-500
+                colorHover="rgb(75, 85, 99)" // gray-600
+                tamaño="mediano"
+                disabled={loading}
+                bold
+                className="flex-1 py-3 px-4"
                 onClick={handleCancelar}
+                type="button"
+              />
+              
+              <BotonPersonalizado
+                texto={esEdicion ? "Actualizar Alerta" : "Crear Alerta"}
+                tamaño="mediano"
+                loading={loading}
                 disabled={loading}
-                className="flex-1 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
-              >
-                Cancelar
-              </button>
-              <button
+                bold
+                className="flex-1 py-3 px-4"
                 type="submit"
-                disabled={loading}
-                className="flex-1 bg-custom-accent hover:bg-custom-accent-hover disabled:bg-custom-accent/50 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center"
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {esEdicion ? "Actualizando..." : "Creando..."}
-                  </>
-                ) : esEdicion ? (
-                  "Actualizar Alerta"
-                ) : (
-                  "Crear Alerta"
-                )}
-              </button>
+              />
             </div>
           </form>
 

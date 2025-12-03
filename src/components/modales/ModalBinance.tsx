@@ -45,7 +45,6 @@ export default function ModalBinance({ isOpen, onClose, onConnect }: ModalBinanc
         <div className="mb-4">
           <Boton
             texto={showInstructions ? "Ocultar instrucciones" : "¿Cómo obtener mis credenciales?"}
-            variante="secundario"
             tamaño="pequeno"
             onClick={() => setShowInstructions(!showInstructions)}
           />
@@ -123,14 +122,12 @@ export default function ModalBinance({ isOpen, onClose, onConnect }: ModalBinanc
           <div className="mt-6 flex justify-end space-x-3">
             <Boton
               texto="Cancelar"
-              variante="secundario"
               tamaño="mediano"
               onClick={onClose}
               type="button"
             />
             <Boton
               texto={loading ? "Conectando..." : "Conectar Exchange"}
-              variante="primario"
               tamaño="mediano"
               type="submit"
               loading={loading}

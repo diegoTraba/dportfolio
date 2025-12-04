@@ -86,7 +86,7 @@ function EditarAlertaContent() {
 
       if (response.ok) {
         const data = await response.json();
-        setPrecioActual(data.price);
+        setPrecioActual(data.precio);
       }
     } catch (err) {
       console.error("Error obteniendo precio actual:", err);

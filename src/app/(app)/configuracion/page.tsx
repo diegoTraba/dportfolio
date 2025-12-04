@@ -9,18 +9,7 @@ import Aviso from "@/components/controles/Aviso";
 import { useUserId } from "@/hooks/useUserId";
 import { supabase } from "@/lib/supabase";
 import { validarContrasenia } from "@/lib/Validaciones";
-
-/**
- * INTERFACES PARA TIPADO
- *
- * UserPreferences: Define la estructura de las preferencias del usuario
- * que se guardan en la base de datos
- */
-interface UserPreferences {
-  email_notification: boolean; // Notificaciones por email
-  push_notification: boolean; // Notificaciones push del navegador
-  main_currency: string; // Moneda principal (USD, EUR, BTC)
-}
+import {PreferenciasUsuario} from '@/interfaces/comun.types'
 
 export default function Configuracion() {
   // ===========================================================================
@@ -51,10 +40,10 @@ export default function Configuracion() {
 
   // Estados para las preferencias del usuario
   const [loadingPreferences, setLoadingPreferences] = useState(true);
-  const [preferences, setPreferences] = useState<UserPreferences>({
-    email_notification: true, // Valor por defecto
-    push_notification: true, // Valor por defecto
-    main_currency: "USD", // Valor por defecto
+  const [preferences, setPreferences] = useState<PreferenciasUsuario>({
+    notificacionesEmail: true, // Valor por defecto
+    notificacionesPush: true, // Valor por defecto
+    monedaPrincipal: "USD", // Valor por defecto
   });
 
   // Validación en tiempo real de la nueva contraseña
@@ -82,20 +71,20 @@ export default function Configuracion() {
         setLoadingPreferences(true);
 
         // Consultar la base de datos para obtener las preferencias del usuario
-        const { data: user, error } = await supabase
+        const { data: usuario, error } = await supabase
           .from("usuarios")
-          .select("notificacionesEmail, notificacionesPush, main_currency")
+          .select("notificacionesEmail, notificacionesPush, monedaPrincipal")
           .eq("id", userId)
           .single(); // Obtener un solo registro (el usuario actual)
 
         if (error) throw error;
 
         // Si se encontró el usuario, actualizar el estado con sus preferencias
-        if (user) {
+        if (usuario) {
           setPreferences({
-            email_notification: user.notificacionesEmail ?? true, // Si es null, usar true
-            push_notification: user.notificacionesPush ?? true, // Si es null, usar true
-            main_currency: user.main_currency || "USD", // Si es null/empty, usar 'USD'
+            notificacionesEmail: usuario.notificacionesEmail ?? true, // Si es null, usar true
+            notificacionesPush: usuario.notificacionesPush ?? true, // Si es null, usar true
+            monedaPrincipal: usuario.monedaPrincipal || "USD", // Si es null/empty, usar 'USD'
           });
         }
       } catch (error) {
@@ -127,7 +116,7 @@ export default function Configuracion() {
    * @param value - Nuevo valor (boolean para switches, string para select)
    */
   const updatePreference = async (
-    field: keyof UserPreferences,
+    field: keyof PreferenciasUsuario,
     value: boolean | string
   ) => {
     // Si no hay usuario autenticado, no hacer nada
@@ -416,9 +405,9 @@ export default function Configuracion() {
                   </p>
                 </div>
                 <select
-                  value={preferences.main_currency}
+                  value={preferences.monedaPrincipal}
                   onChange={(e) =>
-                    updatePreference("main_currency", e.target.value)
+                    updatePreference("monedaPrincipal", e.target.value)
                   }
                   disabled={loadingPreferences}
                   className="bg-custom-background border border-custom-card rounded-lg px-3 py-2 text-sm disabled:opacity-50"
@@ -451,9 +440,9 @@ export default function Configuracion() {
                   <input
                     type="checkbox"
                     className="sr-only peer"
-                    checked={preferences.email_notification}
+                    checked={preferences.notificacionesEmail}
                     onChange={(e) =>
-                      updatePreference("email_notification", e.target.checked)
+                      updatePreference("notificacionesEmail", e.target.checked)
                     }
                     disabled={loadingPreferences}
                   />
@@ -475,9 +464,9 @@ export default function Configuracion() {
                   <input
                     type="checkbox"
                     className="sr-only peer"
-                    checked={preferences.push_notification}
+                    checked={preferences.notificacionesPush}
                     onChange={(e) =>
-                      updatePreference("push_notification", e.target.checked)
+                      updatePreference("notificacionesPush", e.target.checked)
                     }
                     disabled={loadingPreferences}
                   />

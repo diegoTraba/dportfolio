@@ -69,6 +69,12 @@ interface Usuario {
   ultimoAcceso?: string;
 }
 
+export interface PreferenciasUsuario {
+  notificacionesEmail: boolean; // Notificaciones por email
+  notificacionesPush: boolean; // Notificaciones push del navegador
+  monedaPrincipal: string; // Moneda principal (USD, EUR, BTC)
+}
+
 export interface ApiResponse {
   success: boolean;
   compras: Compra[];

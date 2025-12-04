@@ -126,6 +126,29 @@ export const IconoCampana = ({ className = "" }: { className?: string }) => (
     />
   </svg>
 );
+export const IconoRelojAlerta = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+    {/* Elemento de alerta: punto de exclamación */}
+    <circle cx="12" cy="18" r="0.5" fill="currentColor" stroke="none" />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 16v-1"
+      strokeWidth={2}
+    />
+  </svg>
+);
 
 export const IconoEngranaje = ({ className = "" }: { className?: string }) => (
   <svg

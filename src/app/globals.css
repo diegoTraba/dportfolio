@@ -384,3 +384,40 @@ body {
   color: var(--colorTerciario);
   opacity: 1;
 }
+
+/* Estilos para el menu mobile */
+/* En mobile-menu-links.css (añadir al final de global.css) */
+.menu-link-mobile {
+  display: block;
+  padding: 1rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.menu-link-mobile.active {
+  background-color: #12b296;
+  color: white;
+}
+
+.menu-link-mobile:not(.active) {
+  color: var(--foreground);
+  background-color: var(--card-bg);
+}
+
+.menu-link-mobile:not(.active):hover {
+  background-color: #12b296 !important;
+  color: white !important;
+}
+
+/* Para tema oscuro */
+[data-theme="dark"] .menu-link-mobile:not(.active) {
+  background-color: var(--card-bg);
+}
+
+[data-theme="dark"] .menu-link-mobile:not(.active):hover {
+  background-color: #12b296 !important;
+  color: white !important;
+}

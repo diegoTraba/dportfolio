@@ -10,6 +10,7 @@ import {
   addConnectionListener,
   isWebSocketConnected,
 } from "../lib/webSockedClient";
+import BotonPersonalizado from "@/components/controles/Boton";
 import {
   IconoAlerta,
   IconoSistema,
@@ -21,6 +22,7 @@ import {
   IconoMarcarLeidas,
   IconoCerrar,
   IconoMenu,
+  IconoRelojAlerta,
 } from "./controles/Iconos";
 // Interfaces
 import { Notificacion, WSMessage } from "../interfaces/comun.types";
@@ -127,7 +129,7 @@ export default function MenuPrincipal() {
       // Verificar si el navegador soporta notificaciones y tenemos permisos
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification(notificacion.titulo, {
-          body: notificacion.mensaje
+          body: notificacion.mensaje,
           // tag: notificacion.id.toString(),
         });
       }
@@ -269,8 +271,7 @@ export default function MenuPrincipal() {
       // Si es la ruta de portfolio, activar también para sus subrutas
       if (ruta === "/portfolio") {
         return rutaActual === ruta || rutaActual.startsWith(ruta + "/");
-      }
-      else if (ruta === "/alertas") {
+      } else if (ruta === "/alertas") {
         return rutaActual === ruta || rutaActual.startsWith(ruta + "/");
       }
 
@@ -292,14 +293,17 @@ export default function MenuPrincipal() {
       // Si hay token y userId, llamar al backend para actualizar la fecha
       if (token && userId) {
         // Opción 1: Usando fetch
-        await fetch("https://dportfolio-backend-production.up.railway.app/api/usuario/actualizarUltimoAcceso", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ userId }),
-        });
+        await fetch(
+          "https://dportfolio-backend-production.up.railway.app/api/usuario/actualizarUltimoAcceso",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ userId }),
+          }
+        );
       }
     } catch (error) {
       console.error("Error al actualizar última conexión:", error);
@@ -563,10 +567,10 @@ export default function MenuPrincipal() {
 
   // Estilos para el menú móvil
   const estiloEnlaceMovil =
-    "block py-4 text-xl font-medium border-b border-gray-200 dark:border-gray-700 transition-colors";
-  const estiloActivoMovil = "text-blue-600 dark:text-blue-400";
-  const estiloInactivoMovil =
-    "text-custom-foreground hover:text-blue-600 dark:hover:text-blue-400";
+    "block py-4 px-4 text-xl font-medium transition-colors rounded-lg mb-2"; // Quitado border-b, añadido mb-2
+  const estiloActivoMovil = "bg-[var(--colorTerciario)] text-white";
+  // const estiloInactivoMovil =
+    // "text-custom-foreground bg-custom-card hover:bg-[var(--colorTerciario)] hover:text-white dark:bg-custom-card dark:hover:bg-[var(--colorTerciario)] dark:hover:text-white";
 
   // Cerrar menú cuando cambia la ruta actual (sin useEffect)
   if (rutaActual !== rutaAnterior) {
@@ -630,21 +634,21 @@ export default function MenuPrincipal() {
               href="/alertas"
               className={`menu-link flex items-center ${estaActiva("/alertas") ? "active" : ""}`}
             >
-              <IconoCampana className="w-5 h-5 mr-2" />
+              <IconoRelojAlerta className="w-5 h-5 mr-2" />
               Alertas
             </Link>
           </nav>
 
           {/* Botones de acción */}
           <div className="flex items-center space-x-2">
-            {/* Botón de Notificaciones */}
+            {/* Botón de Notificaciones - Solo icono */}
             <div className="notificaciones-container relative">
               <button
                 onClick={() => setNotificacionesAbierto(!notificacionesAbierto)}
-                className={`p-3 rounded-md transition-colors relative ${
+                className={`p-2 transition-colors relative ${
                   notificacionesAbierto
-                    ? "bg-blue-600 text-white"
-                    : "bg-custom-card text-custom-foreground hover:bg-custom-surface border border-custom-card"
+                    ? "text-[var(--colorTerciario)]"
+                    : "text-custom-foreground hover:text-[var(--colorTerciario)]"
                 }`}
                 title="Notificaciones"
               >
@@ -720,41 +724,40 @@ export default function MenuPrincipal() {
                     )}
                   </div>
 
-                  {/* Footer del panel - Marcarlas todas como leídas */}
+                  {/* Footer del panel - Marcarlas todas como leídas (con BotonPersonalizado) */}
                   <div className="p-3 border-t border-custom-border">
-                    <button
+                    <BotonPersonalizado
+                      texto={
+                        <div className="flex items-center justify-center space-x-2">
+                          <IconoMarcarLeidas className="w-4 h-4" />
+                          <span>Marcar todas como leídas</span>
+                        </div>
+                      }
                       onClick={marcarTodasComoLeidas}
                       disabled={notificacionesNoLeidas === 0}
-                      className={`w-full bg-custom-accent hover:bg-custom-accent-hover text-center text-sm font-medium transition-colors ${
-                        notificacionesNoLeidas > 0
-                          ? "text-custom-accent hover:text-custom-accent-hover"
-                          : "text-custom-foreground/30 cursor-not-allowed"
-                      }`}
-                    >
-                      <div className="flex items-center justify-center space-x-2">
-                        <IconoMarcarLeidas className="w-4 h-4" />
-                        <span>Marcar todas como leídas</span>
-                      </div>
-                    </button>
+                      tamaño="mediano"
+                      bold
+                      className="w-full"
+                    />
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Botón Configuración */}
+            {/* Botón Configuración (se mantiene igual) */}
             <Link
               href="/configuracion"
-              className={`p-3 rounded-md transition-colors ${
+              className={`p-2 transition-colors ${
                 estaActiva("/configuracion")
-                  ? "bg-blue-600 text-white"
-                  : "bg-custom-card text-custom-foreground hover:bg-custom-surface border border-custom-card"
+                  ? "text-[var(--colorTerciario)]"
+                  : "text-custom-foreground hover:text-[var(--colorTerciario)]"
               }`}
               title="Configuración"
             >
               <IconoEngranaje className="w-6 h-6" />
             </Link>
 
-            {/* Botón Cerrar Sesión */}
+            {/* Botón Cerrar Sesión (se mantiene igual) */}
             <button
               onClick={manejarCerrarSesion}
               className="p-3 bg-red-600 hover:bg-red-700 rounded-md transition-colors text-white border border-red-600"
@@ -786,7 +789,11 @@ export default function MenuPrincipal() {
             {/* Botón de Notificaciones móvil */}
             <button
               onClick={() => setNotificacionesAbierto(!notificacionesAbierto)}
-              className="p-2 rounded-md bg-custom-card text-custom-foreground border border-custom-card relative"
+              className={`p-2 transition-colors relative ${
+                notificacionesAbierto
+                  ? "text-[var(--colorTerciario)]"
+                  : "text-custom-foreground hover:text-[var(--colorTerciario)]"
+              }`}
               aria-label="Notificaciones"
             >
               <IconoCampana className="w-6 h-6" />
@@ -880,18 +887,19 @@ export default function MenuPrincipal() {
 
             {/* Footer móvil - Marcarlas todas como leídas */}
             <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-custom-border bg-custom-background">
-              <button
+              <BotonPersonalizado
+                texto={
+                  <div className="flex items-center justify-center space-x-2">
+                    <IconoMarcarLeidas className="w-5 h-5" />
+                    <span>Marcar todas como leídas</span>
+                  </div>
+                }
                 onClick={marcarTodasComoLeidas}
                 disabled={notificacionesNoLeidas === 0}
-                className={`w-full py-3 text-center rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
-                  notificacionesNoLeidas > 0
-                    ? "bg-custom-accent hover:bg-custom-accent-hover text-white"
-                    : "bg-custom-card text-custom-foreground/50 cursor-not-allowed"
-                }`}
-              >
-                <IconoMarcarLeidas className="w-5 h-5" />
-                <span>Marcar todas como leídas</span>
-              </button>
+                tamaño="grande"
+                bold
+                className="w-full"
+              />
             </div>
           </div>
         )}
@@ -936,10 +944,10 @@ export default function MenuPrincipal() {
             <nav className="space-y-2 mb-8">
               <Link
                 href="/portfolio"
-                className={`${estiloEnlaceMovil} ${
+                className={`menu-link-mobile ${
                   estaActiva("/portfolio")
-                    ? "bg-custom-accent text-white"
-                    : "bg-custom-card text-custom-foreground hover:bg-custom-surface"
+                    ? "active"
+                    : ""
                 }`}
                 onClick={() => setMenuAbierto(false)}
               >
@@ -951,25 +959,25 @@ export default function MenuPrincipal() {
 
               <Link
                 href="/alertas"
-                className={`${estiloEnlaceMovil} ${
+                className={`menu-link-mobile ${
                   estaActiva("/alertas")
-                    ? estiloActivoMovil
-                    : estiloInactivoMovil
+                    ? "active"
+                    : ""
                 }`}
                 onClick={() => setMenuAbierto(false)}
               >
                 <div className="flex items-center">
-                  <IconoCampana className="w-5 h-5 mr-3" />
+                  <IconoRelojAlerta className="w-5 h-5 mr-3" />
                   Alertas
                 </div>
               </Link>
 
               <Link
                 href="/configuracion"
-                className={`${estiloEnlaceMovil} ${
+                className={`menu-link-mobile ${
                   estaActiva("/configuracion")
-                    ? estiloActivoMovil
-                    : estiloInactivoMovil
+                    ? "active"
+                    : ""
                 }`}
                 onClick={() => setMenuAbierto(false)}
               >

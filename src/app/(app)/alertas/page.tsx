@@ -20,8 +20,9 @@ export default function Alertas() {
   // Cargar alertas al montar el componente
   useEffect(() => {
     cargarAlertas();
-  }, [userId]);
+  });
 
+  // Metodo para cargar las alertas
   const cargarAlertas = async () => {
     try {
       setLoading(true);
@@ -32,15 +33,18 @@ export default function Alertas() {
         return;
       }
 
+      // endpoint que devuelve las alertas del usuario
       const response = await fetch(`${BACKEND_URL}/api/alertas/${userId}`);
 
       if (!response.ok) {
         throw new Error("Error al cargar las alertas");
       }
 
+      //obtenemos las alertas de la api, las guardamos en el estado de alertas y ponemos el estado de errores a null
       const data = await response.json();
       setAlertas(data);
       setError(null);
+
     } catch (err) {
       console.error("Error cargando alertas:", err);
       setError("No se pudieron cargar las alertas");
@@ -49,6 +53,7 @@ export default function Alertas() {
     }
   };
 
+  // Metodo para reactivar una alerta concreta
   const handleReactivarAlerta = async (id: number) => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/alertas/${id}/reactivar`, {
@@ -62,7 +67,7 @@ export default function Alertas() {
         throw new Error("Error al reactivar la alerta");
       }
 
-      // Actualizar el estado local
+      // Actualizar el estado local de las alertas
       setAlertas(
         alertas.map((alerta) =>
           alerta.id === id
@@ -81,6 +86,7 @@ export default function Alertas() {
     }
   };
 
+  // Metodo para eliminar una alerta concreta
   const handleEliminarAlerta = async (id: number) => {
     if (!confirm("¿Estás seguro de que quieres eliminar esta alerta?")) {
       return;
@@ -95,7 +101,7 @@ export default function Alertas() {
         throw new Error("Error al eliminar la alerta");
       }
 
-      // Actualizar el estado local
+      // Actualizar el estado local de las alertas
       setAlertas(alertas.filter((alerta) => alerta.id !== id));
     } catch (err) {
       console.error("Error eliminando alerta:", err);
@@ -103,16 +109,17 @@ export default function Alertas() {
     }
   };
 
-  // Nueva función para navegar al formulario de edición
+  // Metodo para navegar al formulario de edición
   const handleEditarAlerta = (alerta: Alerta) => {
     router.push(`/alertas/editarAlerta?id=${alerta.id}`);
   };
 
-  // Nueva función para navegar al formulario de creación
+  // Metodo para navegar al formulario de creación
   const handleNuevaAlerta = () => {
     router.push("/alertas/editarAlerta");
   };
 
+  // Render loading
   if (loading) {
     return (
       <>
@@ -128,6 +135,7 @@ export default function Alertas() {
     );
   }
 
+  // Render de la pagina
   return (
     <>
       <main className="container mx-auto p-4">

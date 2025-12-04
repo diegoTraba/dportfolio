@@ -24,6 +24,7 @@ function EditarAlertaContent() {
   const alertaId = searchParams.get("id");
   const esEdicion = !!alertaId;
 
+  // constante para el estado local de la alerta
   const [alerta, setAlerta] = useState<Alerta>({
     id: 0,
     criptomoneda: "BTC",
@@ -36,15 +37,8 @@ function EditarAlertaContent() {
   const [precioActual, setPrecioActual] = useState<number | null>(null);
 
   // Criptomonedas disponibles
-  const criptomonedas = [
-    "BTC",
-    "ETH",
-    "ADA",
-    "SOL",
-    "XRP",
-    "BNB",
-    "LINK",
-  ];
+  const criptomonedas: string[] = process.env.NEXT_PUBLIC_CRIPTOMONEDAS_ALERTAS ? JSON.parse(process.env.NEXT_PUBLIC_CRIPTOMONEDAS_ALERTAS) : [];
+
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // Cargar datos de la alerta si estamos en modo edición
@@ -52,15 +46,16 @@ function EditarAlertaContent() {
     if (esEdicion && alertaId) {
       cargarAlerta();
     }
-  }, [esEdicion, alertaId]);
+  });
 
   // Obtener precio actual cuando se selecciona una criptomoneda
   useEffect(() => {
     if (alerta.criptomoneda) {
       obtenerPrecioActual(alerta.criptomoneda);
     }
-  }, [alerta.criptomoneda]);
+  });
 
+  // Metodo para cargar una alerta concreta cuando estamos en modo editar
   const cargarAlerta = async () => {
     try {
       setLoading(true);
@@ -82,6 +77,7 @@ function EditarAlertaContent() {
     }
   };
 
+  // Metodo para obtener el precio actual de una criptomoneda concreta
   const obtenerPrecioActual = async (cripto: string) => {
     try {
       const response = await fetch(
@@ -97,6 +93,7 @@ function EditarAlertaContent() {
     }
   };
 
+  // Evento onSubmit del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -120,6 +117,8 @@ function EditarAlertaContent() {
     try {
       setLoading(true);
 
+      // en edicion haremos un put a /api/alertas/${alertaId} para modificar una alerta existente
+      // en nuevo haremos un post a /api/alertas para crear la nueva alerta para el usuario
       const url = esEdicion
         ? `${BACKEND_URL}/api/alertas/${alertaId}`
         : `${BACKEND_URL}/api/alertas`;
@@ -137,7 +136,7 @@ function EditarAlertaContent() {
         precio_objetivo: alerta.precio_objetivo,
       };
 
-      // en creacion añadimos la fecha de creacion
+      // en nuevo añadimos la fecha de creacion
       if (!esEdicion) {
         alertaData.creado = new Date().toISOString();
       }
@@ -217,6 +216,7 @@ function EditarAlertaContent() {
     }));
   };
 
+  // Render loading
   if (loading && esEdicion) {
     return (
       <>
@@ -232,6 +232,7 @@ function EditarAlertaContent() {
     );
   }
 
+  // Render de la pagina
   return (
     <>
       <main className="container mx-auto p-4">

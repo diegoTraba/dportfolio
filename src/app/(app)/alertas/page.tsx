@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback} from "react";
 import { useUserId } from "@/hooks/useUserId";
 import { useRouter } from "next/navigation";
 import TarjetaAlerta from "@/components/controles/alertas/TarjetaAlerta";
@@ -17,13 +17,8 @@ export default function Alertas() {
   const router = useRouter();
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  // Cargar alertas al montar el componente
-  useEffect(() => {
-    cargarAlertas();
-  });
-
-  // Metodo para cargar las alertas
-  const cargarAlertas = async () => {
+  // Metodo para cargar las alertas - memoizado con useCallback
+  const cargarAlertas = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -51,7 +46,12 @@ export default function Alertas() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, BACKEND_URL]); // Dependencias de useCallback
+
+  // Cargar alertas al montar el componente o cuando cambie cargarAlertas
+  useEffect(() => {
+    cargarAlertas();
+  }, [cargarAlertas]); // Ahora solo depende de cargarAlertas, que es memoizado
 
   // Metodo para reactivar una alerta concreta
   const handleReactivarAlerta = async (id: number) => {

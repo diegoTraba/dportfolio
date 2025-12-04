@@ -360,7 +360,7 @@ export default function Configuracion() {
     <>
       <main className="container mx-auto p-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Configuración</h1>
+          <h1 className="text-3xl font-bold title-custom-foreground mb-8">Configuración</h1>
 
           {/* 
               MENSAJE GLOBAL 
@@ -380,7 +380,7 @@ export default function Configuracion() {
               Configuraciones de apariencia y moneda
             */}
           <div className="bg-custom-card p-6 rounded-lg border border-custom-card shadow-sm mb-6">
-            <h2 className="text-xl font-semibold mb-4">
+            <h2 className="text-xl title-custom-foreground mb-4">
               Preferencias Generales
             </h2>
 
@@ -425,7 +425,7 @@ export default function Configuracion() {
               Configuración de tipos de notificaciones
             */}
           <div className="bg-custom-card p-6 rounded-lg border border-custom-card shadow-sm mb-6">
-            <h2 className="text-xl font-semibold mb-4">Notificaciones</h2>
+            <h2 className="text-xl title-custom-foreground mb-4">Notificaciones</h2>
 
             <div className="space-y-4">
               {/* Switch: Alertas por Email */}
@@ -483,12 +483,10 @@ export default function Configuracion() {
               Cambio de contraseña del usuario
             */}
           <div className="bg-custom-card p-6 rounded-lg border border-custom-card shadow-sm mb-6">
-            <h2 className="text-xl font-semibold mb-4">Seguridad</h2>
+            <h2 className="text-xl title-custom-foreground mb-4">Cambiar Contraseña</h2>
 
             <div className="space-y-4">
               <div>
-                <h3 className="font-medium mb-2">Cambiar Contraseña</h3>
-
                 {/* Formulario para cambio de contraseña */}
                 <form onSubmit={handleSubmit} className="space-y-3 max-w-md">
                   {/* Campo: Contraseña actual */}

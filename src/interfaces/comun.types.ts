@@ -12,6 +12,7 @@ export interface Alerta {
   precio_actual?: number;
   estado?: "pendiente" | "activo";
   creado?: string;
+  leida?: boolean;
   activado?: string;
 }
 

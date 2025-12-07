@@ -1,13 +1,88 @@
-import DataTable, { TableColumn } from 'react-data-table-component';
-import { useMemo, useState, useEffect, useCallback } from 'react';
-import { Compra } from '@/interfaces/comun.types'
+import DataTable, { TableColumn } from "react-data-table-component";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import { Compra } from "@/interfaces/comun.types";
+import { 
+  IconoReloj, 
+  IconoCheckCircle, 
+  IconoDolar,
+  IconoEtiqueta 
+} from '@/components/controles/Iconos';
 
 interface TablaComprasProps {
   compras: Compra[];
+  onVender?: (compra: Compra) => void;
+  onMarcarVendido?: (compra: Compra) => void;
 }
 
+// Función auxiliar para formatear fechas de manera segura
+const formatDateSafe = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    
+    // Verificar si la fecha es válida
+    if (isNaN(date.getTime())) {
+      return 'Fecha inválida';
+    }
+    
+    // Formatear a dd/mm/yyyy
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error('Error formateando fecha:', dateString, error);
+    return 'Fecha inválida';
+  }
+};
+
+// Componente para el botón de estado
+const EstadoButton = ({ vendida }: { vendida?: boolean }) => {
+  const estado = vendida ? 'vendida' : 'pendiente';
+  const config = {
+    pendiente: {
+      icon: IconoReloj,
+      color: "bg-yellow-500",
+      textColor: "text-yellow-500",
+      bgColor: "bg-yellow-500/10",
+      borderColor: "border-yellow-500/20",
+      label: "Pendiente",
+    },
+    vendida: {
+      icon: IconoCheckCircle,
+      color: "bg-green-500",
+      textColor: "text-green-500",
+      bgColor: "bg-green-500/10",
+      borderColor: "border-green-500/20",
+      label: "Vendida",
+    },
+  };
+
+  const { icon: Icon, color, bgColor, borderColor, label } = config[estado];
+
+  return (
+    <button
+      className={`flex items-center justify-center gap-1 px-2 py-1 rounded-full ${bgColor} border ${borderColor} transition-all hover:opacity-80`}
+      title={label}
+    >
+      <Icon className={`w-4 h-4 ${color.replace("bg-", "text-")}`} />
+      <span className={`text-xs font-medium ${color.replace("bg-", "text-")}`}>
+        {label}
+      </span>
+    </button>
+  );
+};
+
 // Componente separado para las tarjetas móviles
-const MobileCards = ({ compras }: { compras: Compra[] }) => (
+const MobileCards = ({
+  compras,
+  onVender,
+  onMarcarVendido,
+}: {
+  compras: Compra[];
+  onVender: (compra: Compra) => void;
+  onMarcarVendido: (compra: Compra) => void;
+}) => (
   <div className="mobile-cards-container">
     {compras.map((compra, index) => (
       <div key={compra.id || index} className="purchase-card">
@@ -30,21 +105,55 @@ const MobileCards = ({ compras }: { compras: Compra[] }) => (
         <div className="card-row">
           <span className="label">Total:</span>
           <span className="value">${compra.total?.toFixed(2)}</span>
-        </div>       
+        </div>
         <div className="card-row">
           <span className="label">Comisión:</span>
-          <span className="value">${compra.comision?.toFixed(2) || '0.00'}</span>
+          <span className="value">
+            ${compra.comision?.toFixed(2) || "0.00"}
+          </span>
         </div>
         <div className="card-row">
           <span className="label">Fecha:</span>
-          <span className="value">{compra.fechaCompra}</span>
+          <span className="value">{formatDateSafe(compra.fechaCompra)}</span>
+        </div>
+
+        {/* Nueva fila para Estado en móvil */}
+        <div className="card-row">
+          <span className="label">Estado:</span>
+          <div className="value flex items-center gap-2">
+            <EstadoButton vendida={compra.vendida} />
+          </div>
+        </div>
+        {/* Nueva fila para Acciones en móvil */}
+        <div className="card-row">
+          <span className="label">Acciones:</span>
+          <div className="value flex items-center gap-2">
+            <button
+              onClick={() => onVender(compra)}
+              className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-500'}`}
+              title="Vender"
+            >
+              <IconoDolar className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onMarcarVendido(compra)}
+              className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? 'bg-green-500/20 text-green-500' : 'bg-green-500/10 hover:bg-green-500/20 text-green-500'}`}
+              title={compra.vendida ? "Ya vendida" : "Marcar como vendida"}
+            >
+              <IconoEtiqueta className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     ))}
   </div>
 );
 
-const TablaCompras = ({ compras }: TablaComprasProps) => {
+const TablaCompras = ({ 
+  compras, 
+  onVender, 
+  onMarcarVendido 
+ }: TablaComprasProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -59,24 +168,51 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
 
   // Calcular selectAll solo para las filas visibles
   const visibleRows = getVisibleRows();
-  const allVisibleSelected = visibleRows.length > 0 && 
-    visibleRows.every(row => selectedRows.includes(row.id));
+  const allVisibleSelected =
+    visibleRows.length > 0 &&
+    visibleRows.every((row) => selectedRows.includes(row.id));
+
+  // Handlers para las acciones
+  const handleVender = useCallback((compra: Compra) => {
+    if (compra.vendida) {
+      // Si ya está vendida, no hacer nada
+      console.log('Esta compra ya está vendida');
+      return;
+    }
+    
+    if (onVender) {
+      onVender(compra);
+    } else {
+      console.log('Vender compra:', compra);
+      // Aquí iría la lógica para abrir modal de venta
+    }
+  }, [onVender]);
+
+  const handleMarcarVendido = useCallback((compra: Compra) => {
+    if (onMarcarVendido) {
+      onMarcarVendido(compra);
+    } else {
+      console.log('Marcar como vendida:', compra);
+      // Aquí iría la lógica para cambiar el estado a vendida
+      // Ejemplo: actualizarCompra(compra.id, { vendida: true });
+    }
+  }, [onMarcarVendido]);
 
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
   // Manejar selección individual
   const handleRowSelect = useCallback((id: number) => {
-    setSelectedRows(prev => {
+    setSelectedRows((prev) => {
       if (prev.includes(id)) {
-        return prev.filter(rowId => rowId !== id);
+        return prev.filter((rowId) => rowId !== id);
       } else {
         return [...prev, id];
       }
@@ -85,16 +221,18 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
 
   // Manejar selección de todas las filas VISIBLES
   const handleSelectAllVisible = useCallback(() => {
-    const visibleRowIds = visibleRows.map(row => row.id);
-    
+    const visibleRowIds = visibleRows.map((row) => row.id);
+
     if (allVisibleSelected) {
       // Deseleccionar todas las filas visibles
-      setSelectedRows(prev => prev.filter(id => !visibleRowIds.includes(id)));
+      setSelectedRows((prev) =>
+        prev.filter((id) => !visibleRowIds.includes(id))
+      );
     } else {
       // Seleccionar todas las filas visibles
-      setSelectedRows(prev => {
+      setSelectedRows((prev) => {
         const newSelection = [...prev];
-        visibleRowIds.forEach(id => {
+        visibleRowIds.forEach((id) => {
           if (!newSelection.includes(id)) {
             newSelection.push(id);
           }
@@ -110,80 +248,157 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
   }, []);
 
   // Manejar cambio de filas por página
-  const handlePerRowsChange = useCallback((newPerPage: number, page: number) => {
-    setRowsPerPage(newPerPage);
-    setCurrentPage(page);
-  }, []);
+  const handlePerRowsChange = useCallback(
+    (newPerPage: number, page: number) => {
+      setRowsPerPage(newPerPage);
+      setCurrentPage(page);
+    },
+    []
+  );
 
   const columns: TableColumn<Compra>[] = useMemo(() => {
     // Definir baseColumns dentro del useMemo
     const baseColumns: TableColumn<Compra>[] = [
       {
-        name: 'Exchange',
+        name: "Exchange",
         selector: (row: Compra) => row.exchange,
         sortable: true,
-        width: '12%',
-        minWidth: '80px',
+        width: "10%",      
         style: {
-          textAlign: 'center',
-          paddingLeft: '8px',
-          paddingRight: '8px',
-        }
+          minWidth: "90px",
+          textAlign: "center",
+          paddingLeft: "4px",
+          paddingRight: "4px",
+        },
       },
       {
-        name: 'Símbolo',
+        name: "Símbolo",
         selector: (row: Compra) => row.simbolo,
         sortable: true,
-        width: '12%',
-        minWidth: '100px',
+        width: "10%",
         style: {
-          textAlign: 'center',
-        }
+          minWidth: "90px",
+          textAlign: "center",
+          paddingLeft: "4px",
+          paddingRight: "4px",
+        },
       },
       {
-        name: 'Precio',
+        name: "Precio",
         selector: (row: Compra) => row.precio,
         sortable: true,
         format: (row: Compra) => `$${row.precio.toFixed(2)}`,
-        width: '12%',
-        minWidth: '100px',
-        right: true,
+        width: "10%",
+        style: {
+          minWidth: "90px",
+          paddingLeft: "4px",
+          paddingRight: "4px",
+          textAlign: "right",
+          justifyContent: "end"
+        },
       },
       {
-        name: 'Cantidad',
+        name: "Cantidad",
         selector: (row: Compra) => row.cantidad,
         sortable: true,
         format: (row: Compra) => row.cantidad.toFixed(4),
-        width: '15%',
-        minWidth: '120px',
-        right: true,
+        width: "11%",
+        style: {
+          minWidth: "90px",
+          paddingLeft: "4px",
+          paddingRight: "4px",
+          textAlign: "right",
+        },
       },
       {
-        name: 'Total',
+        name: "Total",
         selector: (row: Compra) => row.total,
         sortable: true,
         format: (row: Compra) => `$${row.total.toFixed(2)}`,
-        width: '13%',
-        minWidth: '100px',
-        right: true,
+        width: "9%",
+        style: {
+          minWidth: "85px",
+          paddingLeft: "4px",
+          paddingRight: "4px",
+          textAlign: "right",
+        },
       },
       {
-        name: 'Comisión',
+        name: "Comisión",
         selector: (row: Compra) => row.comision || 0,
         sortable: true,
         format: (row: Compra) => `$${(row.comision || 0).toFixed(2)}`,
-        width: '12%',
-        minWidth: '100px',
-        right: true,
+        width: "10%",
+        style: {
+          minWidth: "85px", 
+          paddingLeft: "4px",
+          paddingRight: "4px",
+          textAlign: "right",
+        },
       },
       {
-        name: 'Fecha',
+        name: "Fecha",
         selector: (row: Compra) => row.fechaCompra,
         sortable: true,
-        width: '14%',
-        minWidth: '120px',
-        format: (row: Compra) => new Date(row.fechaCompra).toLocaleDateString(),
-        right: true,
+        width: "12%",
+        format: (row: Compra) => formatDateSafe(row.fechaCompra),
+        style: {
+          minWidth: "85px",
+          paddingLeft: "4px",
+          paddingRight: "4px",
+          textAlign: "right", 
+        },
+      },
+      {
+        name: 'Estado',
+        cell: (row: Compra) => (
+          <div className="flex items-center justify-center">
+            <EstadoButton vendida={row.vendida} />
+          </div>
+        ),
+        sortable: true,
+        sortFunction: (rowA: Compra, rowB: Compra) => {
+          const vendidaA = rowA.vendida ? 1 : 0;
+          const vendidaB = rowB.vendida ? 1 : 0;
+          return vendidaA - vendidaB;
+        },
+        width: '13%',
+        style: {
+          minWidth: '115px',
+          textAlign: 'center',
+          paddingLeft: "4px",
+          paddingRight: "4px",
+        }
+      },
+      {
+        name: 'Acciones',
+        cell: (row: Compra) => (
+          <div className="flex items-center justify-center gap-1">
+            <button
+              onClick={() => handleVender(row)}
+              className={`p-1 rounded-lg transition-colors ${row.vendida ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-500'}`}
+              title={row.vendida ? "Ya vendida" : "Vender"}
+              disabled={row.vendida}
+            >
+              <IconoDolar className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => handleMarcarVendido(row)}
+              className={`p-1 rounded-lg transition-colors ${row.vendida ? 'bg-green-500/20 text-green-500' : 'bg-green-500/10 hover:bg-green-500/20 text-green-500'}`}
+              title={row.vendida ? "Ya vendida" : "Marcar como vendida"}
+            >
+              <IconoEtiqueta className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ),
+        sortable: false,
+        width: '10%',
+        style: {
+          minWidth: '100px',
+          textAlign: 'center',
+          paddingLeft: "4px",
+          paddingRight: "4px",
+        }
       },
     ];
 
@@ -211,10 +426,10 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
           </div>
         ),
         sortable: false,
-        width: '5%',
-        minWidth: '50px',
+        width: "5%",
         style: {
-          textAlign: 'center',
+          minWidth: "50px",
+          textAlign: "center",
         },
       };
 
@@ -222,62 +437,70 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
     }
 
     return baseColumns;
-  }, [isMobile, allVisibleSelected, selectedRows, handleSelectAllVisible, handleRowSelect]);
+  }, [
+    isMobile,
+    allVisibleSelected,
+    selectedRows,
+    handleSelectAllVisible,
+    handleRowSelect,
+    handleVender,
+    handleMarcarVendido
+  ]);
 
   // Estilos mínimos para evitar errores de tipo
   const customStyles = {
     table: {
       style: {
-        width: '100%',
+        width: "100%",
       },
     },
     headRow: {
       style: {
-        backgroundColor: 'var(--header-bg)',
-        color: 'var(--foreground)',
-        fontSize: '14px',
-        fontWeight: 'bold',
-        minHeight: '52px',
-        borderBottom: '2px solid var(--header-border)',
+        backgroundColor: "var(--header-bg)",
+        color: "var(--foreground)",
+        fontSize: "14px",
+        fontWeight: "bold",
+        minHeight: "52px",
+        borderBottom: "2px solid var(--header-border)",
       },
     },
     headCells: {
       style: {
-        backgroundColor: 'var(--header-bg)',
-        color: 'var(--foreground)',
-        fontSize: '14px',
-        fontWeight: 'bold',
-        paddingLeft: '8px',
-        paddingRight: '8px',
+        backgroundColor: "var(--header-bg)",
+        color: "var(--foreground)",
+        fontSize: "14px",
+        fontWeight: "bold",
+        paddingLeft: "8px",
+        paddingRight: "8px",
       },
     },
     cells: {
       style: {
-        backgroundColor: 'var(--card-bg)',
-        color: 'var(--foreground)',
-        fontSize: '14px',
-        paddingLeft: '8px',
-        paddingRight: '8px',
+        backgroundColor: "var(--card-bg)",
+        color: "var(--foreground)",
+        fontSize: "14px",
+        paddingLeft: "8px",
+        paddingRight: "8px",
       },
     },
     rows: {
       style: {
-        backgroundColor: 'var(--card-bg)',
-        color: 'var(--foreground)',
-        borderBottom: '1px solid var(--card-border)',
-        '&:hover': {
-          backgroundColor: 'var(--surface) !important',
+        backgroundColor: "var(--card-bg)",
+        color: "var(--foreground)",
+        borderBottom: "1px solid var(--card-border)",
+        "&:hover": {
+          backgroundColor: "var(--surface) !important",
         },
       },
       stripedStyle: {
-        backgroundColor: 'var(--surface)',
+        backgroundColor: "var(--surface)",
       },
     },
     pagination: {
       style: {
-        backgroundColor: 'var(--card-bg)',
-        color: 'var(--foreground)',
-        borderTop: '1px solid var(--card-border)',
+        backgroundColor: "var(--card-bg)",
+        color: "var(--foreground)",
+        borderTop: "1px solid var(--card-border)",
       },
     },
   };
@@ -285,7 +508,7 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
   return (
     <div className="compras-table-container">
       {isMobile ? (
-        <MobileCards compras={compras} />
+        <MobileCards compras={compras} onVender={handleVender} onMarcarVendido={handleMarcarVendido} />
       ) : (
         <>
           {/* Mostrar información de selección si hay filas seleccionadas */}
@@ -296,7 +519,7 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
               </p>
             </div>
           )}
-          
+
           <DataTable
             columns={columns}
             data={compras}
@@ -308,7 +531,6 @@ const TablaCompras = ({ compras }: TablaComprasProps) => {
             onChangeRowsPerPage={handlePerRowsChange}
             highlightOnHover
             striped
-            // Eliminamos fixedHeader y fixedHeaderScrollHeight para evitar scroll vertical innecesario
             noDataComponent={
               <div className="text-center py-8 text-custom-foreground opacity-70">
                 No se encontraron operaciones

@@ -1,22 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useUserId } from "@/hooks/useUserId";
 import TablaCompras from "@/components/controles/tablas/TablaCompras";
+import FiltroFecha from "@/components/controles/FiltroFecha";
+import { IconoRefrescar } from "@/components/controles/Iconos";
 
 //interfaces
-import {ApiResponse,Compra} from "@/interfaces/comun.types"
+import { ApiResponse, Compra } from "@/interfaces/comun.types";
 
 export default function Compras() {
   const userId = useUserId();
   const [compras, setCompras] = useState<Compra[]>([]);
+  const [comprasFiltradas, setComprasFiltradas] = useState<Compra[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [totalCompras, setTotalCompras] = useState(0);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const [fechaInicio, setFechaInicio] = useState<Date | null>(null);
+  const [fechaFin, setFechaFin] = useState<Date | null>(null);
 
-  useEffect(() => {
-    const fetchCompras = async () => {
+  // Usamos useRef para evitar que el efecto se ejecute en la carga inicial
+  const isInitialMount = useRef(true);
+
+  // Función para formatear fecha a ISO string (YYYY-MM-DD)
+  const formatDateToISO = (date: Date): string => {
+    return date.toISOString().split("T")[0];
+  };
+
+  // Función para obtener compras desde el backend
+  const fetchCompras = useCallback(
+    async (fechaDesde?: string, fechaHasta?: string) => {
       if (!userId) {
         setLoading(false);
         return;
@@ -26,9 +39,18 @@ export default function Compras() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(
-          `${BACKEND_URL}/api/binance/compras-activas/${userId}?limit=100`
-        );
+        // Construir URL con parámetros de filtro
+        let url = `${BACKEND_URL}/api/binance/compras-activas/${userId}?limit=1000`;
+
+        if (fechaDesde) {
+          url += `&fechaDesde=${fechaDesde}`;
+        }
+
+        if (fechaHasta) {
+          url += `&fechaHasta=${fechaHasta}`;
+        }
+
+        const response = await fetch(url);
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -59,12 +81,17 @@ export default function Compras() {
           cantidad: compra.cantidad,
           total: compra.total,
           comision: compra.comision,
-          fechaCompra: new Date(compra.fechaCompra).toLocaleDateString("es-ES"),
-          vendida: compra.vendida
+          fechaCompra: compra.fechaCompra,
+          vendida: compra.vendida,
         }));
 
-        setCompras(comprasTransformadas);
-        setTotalCompras(data.compras.length);
+        // Si no hay filtros de fecha, actualizamos ambas listas
+        if (!fechaDesde && !fechaHasta) {
+          setCompras(comprasTransformadas);
+        }
+
+        // Siempre actualizamos las compras filtradas
+        setComprasFiltradas(comprasTransformadas);
       } catch (err) {
         console.error("Error fetching compras:", err);
         setError(
@@ -73,44 +100,215 @@ export default function Compras() {
       } finally {
         setLoading(false);
       }
-    };
+    },
+    [userId, BACKEND_URL]
+  );
 
+  // Cargar compras iniciales cuando userId esté disponible
+  useEffect(() => {
+    if (userId) {
+      fetchCompras();
+    } else {
+      setLoading(false);
+    }
+  }, [userId, fetchCompras]); // Se ejecuta cuando userId cambia
+
+  // Aplicar filtros cuando cambian las fechas
+  useEffect(() => {
+    // Evitar ejecución en el montaje inicial
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Debounce para evitar múltiples llamadas rápidas
+    const timer = setTimeout(() => {
+      if (fechaInicio || fechaFin) {
+        // Si hay filtros, aplicar filtrado
+        const fechaDesde = fechaInicio
+          ? formatDateToISO(fechaInicio)
+          : undefined;
+        const fechaHasta = fechaFin ? formatDateToISO(fechaFin) : undefined;
+
+        fetchCompras(fechaDesde, fechaHasta);
+      } else {
+        // Si no hay filtros, mostrar todas las compras
+        fetchCompras();
+      }
+    }, 300); // 300ms de debounce
+
+    return () => clearTimeout(timer);
+  }, [fechaInicio, fechaFin]); // Solo dependemos de las fechas
+
+  // Función para limpiar filtros
+  const handleLimpiarFiltros = () => {
+    setFechaInicio(null);
+    setFechaFin(null);
+    // Al limpiar filtros, cargamos todas las compras
     fetchCompras();
-  }, [userId]);
+  };
+
+  // Calcular estadísticas de filtrado
+  const mostrarFiltros = fechaInicio || fechaFin;
+  const totalFiltradas = comprasFiltradas.length;
+  const porcentajeFiltrado =
+    compras.length > 0
+      ? Math.round((totalFiltradas / compras.length) * 100)
+      : 0;
 
   return (
     <>
       <main className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-6">Mis Operaciones</h1>
+        <h1 className="text-2xl title-custom-foreground mb-2">
+          Mis Operaciones
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          {compras.length > 0
+            ? `Total de operaciones: ${compras.length}`
+            : "No hay operaciones registradas"}
+        </p>
+
+        {/* Filtros */}
+        <div className="mb-8 p-4 bg-custom-card border border-custom-card rounded-lg">
+          <h2 className="text-lg title-custom-foreground mb-4">
+            Filtros de Fecha
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <FiltroFecha
+                label="Fecha de inicio"
+                placeholder="Desde"
+                value={fechaInicio}
+                onChange={setFechaInicio}
+                maxDate={fechaFin ? fechaFin : undefined}
+              />
+            </div>
+
+            <div>
+              <FiltroFecha
+                label="Fecha de fin"
+                placeholder="Hasta"
+                value={fechaFin}
+                onChange={setFechaFin}
+                minDate={fechaInicio || undefined}
+                maxDate={new Date()}
+              />
+            </div>
+
+            <div className="flex items-end">
+              <button
+                onClick={handleLimpiarFiltros}
+                className="flex items-center justify-center gap-2 px-4 py-3 w-full bg-custom-surface hover:bg-custom-header rounded-lg transition-colors text-custom-foreground border border-custom-border"
+              >
+                <IconoRefrescar className="w-4 h-4" />
+                Limpiar filtros
+              </button>
+            </div>
+          </div>
+
+          {/* Información de filtrado */}
+          {mostrarFiltros && (
+            <div className="mt-4 p-3 bg-alerta-activa border border-alerta-activa rounded-lg">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm text-custom-foreground">
+                    {fechaInicio && fechaFin
+                      ? `Mostrando operaciones del ${fechaInicio.toLocaleDateString("es-ES")} al ${fechaFin.toLocaleDateString("es-ES")}`
+                      : fechaInicio
+                        ? `Mostrando operaciones desde el ${fechaInicio.toLocaleDateString("es-ES")}`
+                        : `Mostrando operaciones hasta el ${fechaFin?.toLocaleDateString("es-ES")}`}
+                  </p>
+                </div>
+                <div className="text-sm text-custom-foreground">
+                  <span className="font-semibold">{totalFiltradas}</span> de{" "}
+                  {compras.length} operaciones ({porcentajeFiltrado}%)
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
         {loading && (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mr-3"></div>
-            <span>Cargando operaciones...</span>
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mr-4"></div>
+            <div>
+              <p className="text-lg font-medium">Cargando operaciones...</p>
+              <p className="text-sm text-gray-500">
+                {fechaInicio || fechaFin
+                  ? "Aplicando filtros de fecha"
+                  : "Obteniendo todas las operaciones"}
+              </p>
+            </div>
           </div>
         )}
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <strong>Error:</strong> {error}
-            <button
-              onClick={() => window.location.reload()}
-              className="ml-4 text-sm underline"
-            >
-              Reintentar
-            </button>
+            <div className="flex justify-between items-start">
+              <div>
+                <strong className="font-bold">Error:</strong>
+                <span className="ml-2">{error}</span>
+              </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="ml-4 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+              >
+                Reintentar
+              </button>
+            </div>
           </div>
         )}
 
-        {!loading && !error && compras.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            No se encontraron operaciones
+        {!loading && !error && comprasFiltradas.length === 0 && (
+          <div className="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+            <div className="text-gray-500 dark:text-gray-400 mb-4">
+              <svg
+                className="w-16 h-16 mx-auto mb-4 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <p className="text-xl font-medium mb-2">
+                No se encontraron operaciones
+              </p>
+              <p className="mb-4">
+                {mostrarFiltros
+                  ? "No hay operaciones que coincidan con los filtros seleccionados."
+                  : "No hay operaciones registradas en tu cuenta."}
+              </p>
+            </div>
+            {mostrarFiltros && (
+              <button
+                onClick={handleLimpiarFiltros}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Ver todas las operaciones
+              </button>
+            )}
           </div>
         )}
 
-        {!loading && !error && compras.length > 0 && (
+        {!loading && !error && comprasFiltradas.length > 0 && (
           <>
-            <TablaCompras compras={compras} />
+            <div className="mb-4">
+              <TablaCompras compras={comprasFiltradas} />
+            </div>
+
+            {/* Información del pie */}
+            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              <p>
+                Mostrando {comprasFiltradas.length} operaciones
+                {mostrarFiltros && ` (filtradas de ${compras.length} totales)`}
+              </p>
+            </div>
           </>
         )}
       </main>

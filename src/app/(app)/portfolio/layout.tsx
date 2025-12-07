@@ -23,9 +23,9 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-custom-background">
       {/* Contenedor fijo con backdrop-filter para asegurar opacidad */}
       <div className="fixed top-16 left-0 right-0 z-30 bg-custom-header/95 backdrop-blur-sm">
-        <div className="container mx-auto">
+        {/* <div className="container mx-auto"> */}
           <PestaniasPortfolio pestanias={pestanias} />
-        </div>
+        {/* </div> */}
       </div>
       
       {/* Contenido principal */}

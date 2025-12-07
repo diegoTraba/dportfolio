@@ -401,6 +401,216 @@ export const IconoMenu = ({
     />
   </div>
 );
+
+// Icono para estado pendiente (reloj)
+export const IconoReloj = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+// Icono para estado vendido (check en círculo)
+export const IconoCheckCircle = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+// Icono para acción de vender (dólar)
+export const IconoDolar = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+    />
+  </svg>
+);
+
+// Icono para acción de marcar vendido (etiqueta)
+export const IconoEtiqueta = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+    />
+  </svg>
+);
+
+// Icono para acciones generales (tres puntos verticales)
+export const IconoMasOpcionesVertical = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+    />
+  </svg>
+);
+
+// Icono de editar (lápiz) - Ya lo tienes como IconoEditar, pero lo pongo por completitud
+// Icono de eliminar (papelera)
+export const IconoEliminar = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+    />
+  </svg>
+);
+
+// Icono de filtrar
+export const IconoFiltrar = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+    />
+  </svg>
+);
+
+// Icono de ordenar ascendente
+export const IconoOrdenarAsc = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
+    />
+  </svg>
+);
+
+// Icono de ordenar descendente
+export const IconoOrdenarDesc = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"
+    />
+  </svg>
+);
+
+// Icono de seleccionar (check en cuadrado)
+export const IconoSeleccionar = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M5 13l4 4L19 7"
+    />
+  </svg>
+);
+
+// Icono de deseleccionar (cuadrado vacío)
+export const IconoDeseleccionar = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <rect
+      x="3"
+      y="3"
+      width="18"
+      height="18"
+      rx="2"
+      ry="2"
+      stroke="currentColor"
+      strokeWidth={2}
+      fill="none"
+    />
+  </svg>
+);
+
+// Icono de exportar (flecha hacia arriba en un cuadrado)
+export const IconoExportar = ({ className = "" }: { className?: string }) => (
+  <svg
+    className={`w-4 h-4 ${className}`}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
+    />
+  </svg>
+);
 ////////////////////
 // Notificaciones //
 ////////////////////

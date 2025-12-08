@@ -1,4 +1,4 @@
-import DataTable, { TableColumn } from "react-data-table-component";
+import DataTable, { TableColumn, TableStyles } from "react-data-table-component";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Compra } from "@/interfaces/comun.types";
 import { 
@@ -7,6 +7,7 @@ import {
   IconoDolar,
   IconoEtiqueta 
 } from '@/components/controles/Iconos';
+import './TablaCompras.css';
 
 interface TablaComprasProps {
   compras: Compra[];
@@ -208,6 +209,77 @@ const TablaCompras = ({
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
+  // Efecto para forzar la alineación de las cabeceras
+  useEffect(() => {
+    if (!isMobile) {
+      const forceHeaderAlignment = () => {
+        // Esperar a que la tabla se renderice completamente
+        setTimeout(() => {
+          // Seleccionar todos los headers de columna
+          const columnHeaders = document.querySelectorAll('div[role="columnheader"]');
+          
+          columnHeaders.forEach((header, index) => {
+            const headerElement = header as HTMLElement;
+            
+            // Asegurar que tenga display flex
+            headerElement.style.display = 'flex';
+            headerElement.style.alignItems = 'center';
+            
+            // Si hay columna de selección (checkbox), las posiciones son:
+            // 1: Selección, 2: Exchange, 3: Símbolo, 4: Precio, 5: Cantidad, 
+            // 6: Total, 7: Comisión, 8: Fecha, 9: Estado, 10: Acciones
+            
+            // Columnas centradas (1, 2, 3, 9, 10)
+            if ([1, 2, 3, 9, 10].includes(index + 1)) {
+              headerElement.style.justifyContent = 'center';
+              headerElement.style.textAlign = 'center';
+            } 
+            // Columnas alineadas a la derecha (4, 5, 6, 7, 8)
+            else if ([4, 5, 6, 7, 8].includes(index + 1)) {
+              headerElement.style.justifyContent = 'flex-end';
+              headerElement.style.textAlign = 'right';
+            }
+          });
+          
+          // También aplicar a las celdas de contenido
+          const gridCells = document.querySelectorAll('div[role="gridcell"]');
+          
+          gridCells.forEach((cell, index) => {
+            const cellElement = cell as HTMLElement;
+            
+            // Calcular la posición de la columna dentro de la fila
+            const cellIndex = Array.from(cell.parentElement?.children || []).indexOf(cell) + 1;
+            
+            // Asegurar que tenga display flex
+            cellElement.style.display = 'flex';
+            cellElement.style.alignItems = 'center';
+            
+            // Columnas centradas (1, 2, 3, 9, 10)
+            if ([1, 2, 3, 9, 10].includes(cellIndex)) {
+              cellElement.style.justifyContent = 'center';
+              cellElement.style.textAlign = 'center';
+            } 
+            // Columnas alineadas a la derecha (4, 5, 6, 7, 8)
+            else if ([4, 5, 6, 7, 8].includes(cellIndex)) {
+              cellElement.style.justifyContent = 'flex-end';
+              cellElement.style.textAlign = 'right';
+            }
+          });
+        }, 100); // Pequeño delay para asegurar que la tabla se haya renderizado
+      };
+      
+      // Ejecutar al montar y cuando cambien los datos o la página
+      forceHeaderAlignment();
+      
+      // También ejecutar cuando cambie el tamaño de la ventana
+      window.addEventListener('resize', forceHeaderAlignment);
+      
+      return () => {
+        window.removeEventListener('resize', forceHeaderAlignment);
+      };
+    }
+  }, [isMobile, compras, currentPage, rowsPerPage]);
+
   // Manejar selección individual
   const handleRowSelect = useCallback((id: number) => {
     setSelectedRows((prev) => {
@@ -256,199 +328,8 @@ const TablaCompras = ({
     []
   );
 
-  const columns: TableColumn<Compra>[] = useMemo(() => {
-    // Definir baseColumns dentro del useMemo
-    const baseColumns: TableColumn<Compra>[] = [
-      {
-        name: "Exchange",
-        selector: (row: Compra) => row.exchange,
-        sortable: true,
-        width: "10%",      
-        style: {
-          minWidth: "90px",
-          textAlign: "center",
-          paddingLeft: "4px",
-          paddingRight: "4px",
-        },
-      },
-      {
-        name: "Símbolo",
-        selector: (row: Compra) => row.simbolo,
-        sortable: true,
-        width: "10%",
-        style: {
-          minWidth: "90px",
-          textAlign: "center",
-          paddingLeft: "4px",
-          paddingRight: "4px",
-        },
-      },
-      {
-        name: "Precio",
-        selector: (row: Compra) => row.precio,
-        sortable: true,
-        format: (row: Compra) => `$${row.precio.toFixed(2)}`,
-        width: "10%",
-        style: {
-          minWidth: "90px",
-          paddingLeft: "4px",
-          paddingRight: "4px",
-          textAlign: "right",
-          justifyContent: "end"
-        },
-      },
-      {
-        name: "Cantidad",
-        selector: (row: Compra) => row.cantidad,
-        sortable: true,
-        format: (row: Compra) => row.cantidad.toFixed(4),
-        width: "11%",
-        style: {
-          minWidth: "90px",
-          paddingLeft: "4px",
-          paddingRight: "4px",
-          textAlign: "right",
-        },
-      },
-      {
-        name: "Total",
-        selector: (row: Compra) => row.total,
-        sortable: true,
-        format: (row: Compra) => `$${row.total.toFixed(2)}`,
-        width: "9%",
-        style: {
-          minWidth: "85px",
-          paddingLeft: "4px",
-          paddingRight: "4px",
-          textAlign: "right",
-        },
-      },
-      {
-        name: "Comisión",
-        selector: (row: Compra) => row.comision || 0,
-        sortable: true,
-        format: (row: Compra) => `$${(row.comision || 0).toFixed(2)}`,
-        width: "10%",
-        style: {
-          minWidth: "85px", 
-          paddingLeft: "4px",
-          paddingRight: "4px",
-          textAlign: "right",
-        },
-      },
-      {
-        name: "Fecha",
-        selector: (row: Compra) => row.fechaCompra,
-        sortable: true,
-        width: "12%",
-        format: (row: Compra) => formatDateSafe(row.fechaCompra),
-        style: {
-          minWidth: "85px",
-          paddingLeft: "4px",
-          paddingRight: "4px",
-          textAlign: "right", 
-        },
-      },
-      {
-        name: 'Estado',
-        cell: (row: Compra) => (
-          <div className="flex items-center justify-center">
-            <EstadoButton vendida={row.vendida} />
-          </div>
-        ),
-        sortable: true,
-        sortFunction: (rowA: Compra, rowB: Compra) => {
-          const vendidaA = rowA.vendida ? 1 : 0;
-          const vendidaB = rowB.vendida ? 1 : 0;
-          return vendidaA - vendidaB;
-        },
-        width: '13%',
-        style: {
-          minWidth: '115px',
-          textAlign: 'center',
-          paddingLeft: "4px",
-          paddingRight: "4px",
-        }
-      },
-      {
-        name: 'Acciones',
-        cell: (row: Compra) => (
-          <div className="flex items-center justify-center gap-1">
-            <button
-              onClick={() => handleVender(row)}
-              className={`p-1 rounded-lg transition-colors ${row.vendida ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-500'}`}
-              title={row.vendida ? "Ya vendida" : "Vender"}
-              disabled={row.vendida}
-            >
-              <IconoDolar className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => handleMarcarVendido(row)}
-              className={`p-1 rounded-lg transition-colors ${row.vendida ? 'bg-green-500/20 text-green-500' : 'bg-green-500/10 hover:bg-green-500/20 text-green-500'}`}
-              title={row.vendida ? "Ya vendida" : "Marcar como vendida"}
-            >
-              <IconoEtiqueta className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ),
-        sortable: false,
-        width: '10%',
-        style: {
-          minWidth: '100px',
-          textAlign: 'center',
-          paddingLeft: "4px",
-          paddingRight: "4px",
-        }
-      },
-    ];
-
-    // Añadir columna de selección solo si no es móvil
-    if (!isMobile) {
-      const selectionColumn: TableColumn<Compra> = {
-        name: (
-          <div className="flex items-center justify-center">
-            <input
-              type="checkbox"
-              checked={allVisibleSelected}
-              onChange={handleSelectAllVisible}
-              className="h-4 w-4 rounded border-gray-300 text-[var(--colorTerciario)] focus:ring-[var(--colorTerciario)]"
-            />
-          </div>
-        ),
-        cell: (row: Compra) => (
-          <div className="flex items-center justify-center">
-            <input
-              type="checkbox"
-              checked={selectedRows.includes(row.id)}
-              onChange={() => handleRowSelect(row.id)}
-              className="h-4 w-4 rounded border-gray-300 text-[var(--colorTerciario)] focus:ring-[var(--colorTerciario)]"
-            />
-          </div>
-        ),
-        sortable: false,
-        width: "5%",
-        style: {
-          minWidth: "50px",
-          textAlign: "center",
-        },
-      };
-
-      return [selectionColumn, ...baseColumns];
-    }
-
-    return baseColumns;
-  }, [
-    isMobile,
-    allVisibleSelected,
-    selectedRows,
-    handleSelectAllVisible,
-    handleRowSelect,
-    handleVender,
-    handleMarcarVendido
-  ]);
-
-  // Estilos mínimos para evitar errores de tipo
-  const customStyles = {
+  // Estilos mínimos para la tabla
+  const customStyles: TableStyles = {
     table: {
       style: {
         width: "100%",
@@ -470,8 +351,9 @@ const TablaCompras = ({
         color: "var(--foreground)",
         fontSize: "14px",
         fontWeight: "bold",
-        paddingLeft: "8px",
-        paddingRight: "8px",
+        paddingLeft: "12px",
+        paddingRight: "12px",
+        // No definimos justifyContent aquí porque lo manejaremos con JS
       },
     },
     cells: {
@@ -479,8 +361,9 @@ const TablaCompras = ({
         backgroundColor: "var(--card-bg)",
         color: "var(--foreground)",
         fontSize: "14px",
-        paddingLeft: "8px",
-        paddingRight: "8px",
+        paddingLeft: "12px",
+        paddingRight: "12px",
+        // No definimos justifyContent aquí porque lo manejaremos con JS
       },
     },
     rows: {
@@ -505,6 +388,169 @@ const TablaCompras = ({
     },
   };
 
+  const columns: TableColumn<Compra>[] = useMemo(() => {
+    // Configuración básica para todas las columnas
+    const baseColumnProps = {
+      style: {
+        paddingLeft: "12px",
+        paddingRight: "12px",
+      },
+      headerStyle: {
+        paddingLeft: "12px",
+        paddingRight: "12px",
+      }
+    };
+
+    const baseColumns: TableColumn<Compra>[] = [
+      {
+        name: "Exchange",
+        selector: (row: Compra) => row.exchange,
+        sortable: true,
+        width: "10%",
+        minWidth: "100px",
+        ...baseColumnProps
+      },
+      {
+        name: "Símbolo",
+        selector: (row: Compra) => row.simbolo,
+        sortable: true,
+        width: "10%",
+        minWidth: "100px",
+        ...baseColumnProps
+      },
+      {
+        name: "Precio",
+        selector: (row: Compra) => row.precio,
+        sortable: true,
+        format: (row: Compra) => `$${row.precio.toFixed(2)}`,
+        width: "10%",
+        minWidth: "100px",
+        ...baseColumnProps
+      },
+      {
+        name: "Cantidad",
+        selector: (row: Compra) => row.cantidad,
+        sortable: true,
+        format: (row: Compra) => row.cantidad.toFixed(4),
+        width: "11%",
+        minWidth: "100px",
+        ...baseColumnProps
+      },
+      {
+        name: "Total",
+        selector: (row: Compra) => row.total,
+        sortable: true,
+        format: (row: Compra) => `$${row.total.toFixed(2)}`,
+        width: "9%",
+        minWidth: "100px",
+        ...baseColumnProps
+      },
+      {
+        name: "Comisión",
+        selector: (row: Compra) => row.comision || 0,
+        sortable: true,
+        format: (row: Compra) => `$${(row.comision || 0).toFixed(2)}`,
+        width: "10%",
+        minWidth: "100px",
+        ...baseColumnProps
+      },
+      {
+        name: "Fecha",
+        selector: (row: Compra) => row.fechaCompra,
+        sortable: true,
+        format: (row: Compra) => formatDateSafe(row.fechaCompra),
+        width: "12%",
+        minWidth: "110px",
+        ...baseColumnProps
+      },
+      {
+        name: 'Estado',
+        cell: (row: Compra) => (
+          <div className="flex items-center justify-center w-full">
+            <EstadoButton vendida={row.vendida} />
+          </div>
+        ),
+        sortable: true,
+        sortFunction: (rowA: Compra, rowB: Compra) => {
+          const vendidaA = rowA.vendida ? 1 : 0;
+          const vendidaB = rowB.vendida ? 1 : 0;
+          return vendidaA - vendidaB;
+        },
+        width: '13%',
+        minWidth: '130px',
+        ...baseColumnProps
+      },
+      {
+        name: 'Acciones',
+        cell: (row: Compra) => (
+          <div className="flex items-center justify-center w-full gap-1">
+            <button
+              onClick={() => handleVender(row)}
+              className={`p-1 rounded-lg transition-colors ${row.vendida ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-500'}`}
+              title={row.vendida ? "Ya vendida" : "Vender"}
+              disabled={row.vendida}
+            >
+              <IconoDolar className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => handleMarcarVendido(row)}
+              className={`p-1 rounded-lg transition-colors ${row.vendida ? 'bg-green-500/20 text-green-500' : 'bg-green-500/10 hover:bg-green-500/20 text-green-500'}`}
+              title={row.vendida ? "Ya vendida" : "Marcar como vendida"}
+            >
+              <IconoEtiqueta className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ),
+        sortable: false,
+        width: '10%',
+        minWidth: '120px',
+        ...baseColumnProps
+      },
+    ];
+
+    // Añadir columna de selección solo si no es móvil
+    if (!isMobile) {
+      const selectionColumn: TableColumn<Compra> = {
+        name: (
+          <div className="flex items-center justify-center w-full">
+            <input
+              type="checkbox"
+              checked={allVisibleSelected}
+              onChange={handleSelectAllVisible}
+              className="h-4 w-4 rounded border-gray-300 text-[var(--colorTerciario)] focus:ring-[var(--colorTerciario)]"
+            />
+          </div>
+        ),
+        cell: (row: Compra) => (
+          <div className="flex items-center justify-center w-full">
+            <input
+              type="checkbox"
+              checked={selectedRows.includes(row.id)}
+              onChange={() => handleRowSelect(row.id)}
+              className="h-4 w-4 rounded border-gray-300 text-[var(--colorTerciario)] focus:ring-[var(--colorTerciario)]"
+            />
+          </div>
+        ),
+        sortable: false,
+        width: "5%",
+        minWidth: "60px",
+        ...baseColumnProps
+      };
+
+      return [selectionColumn, ...baseColumns];
+    }
+
+    return baseColumns;
+  }, [
+    isMobile,
+    allVisibleSelected,
+    selectedRows,
+    handleSelectAllVisible,
+    handleRowSelect,
+    handleVender,
+    handleMarcarVendido
+  ]);
+
   return (
     <div className="compras-table-container">
       {isMobile ? (
@@ -520,23 +566,25 @@ const TablaCompras = ({
             </div>
           )}
 
-          <DataTable
-            columns={columns}
-            data={compras}
-            customStyles={customStyles}
-            pagination
-            paginationPerPage={rowsPerPage}
-            paginationRowsPerPageOptions={[10, 25, 50, 100]}
-            onChangePage={handlePageChange}
-            onChangeRowsPerPage={handlePerRowsChange}
-            highlightOnHover
-            striped
-            noDataComponent={
-              <div className="text-center py-8 text-custom-foreground opacity-70">
-                No se encontraron operaciones
-              </div>
-            }
-          />
+          <div className="overflow-x-auto rounded-lg border border-[var(--card-border)]">
+            <DataTable
+              columns={columns}
+              data={compras}
+              customStyles={customStyles}
+              pagination
+              paginationPerPage={rowsPerPage}
+              paginationRowsPerPageOptions={[10, 25, 50, 100]}
+              onChangePage={handlePageChange}
+              onChangeRowsPerPage={handlePerRowsChange}
+              highlightOnHover
+              striped
+              noDataComponent={
+                <div className="text-center py-8 text-custom-foreground opacity-70">
+                  No se encontraron operaciones
+                </div>
+              }
+            />
+          </div>
         </>
       )}
     </div>

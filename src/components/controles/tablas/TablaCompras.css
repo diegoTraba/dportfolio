@@ -1,0 +1,53 @@
+/* Fuerza la alineación de las cabeceras y celdas */
+.compras-table-container .rdt_TableCol,
+.compras-table-container .rdt_TableCell {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Sobrescribe cualquier justify-content inline */
+.compras-table-container .rdt_TableCol[style*="justify-content"],
+.compras-table-container .rdt_TableCell[style*="justify-content"] {
+  justify-content: inherit !important;
+}
+
+/* Columnas centradas (basado en posición) */
+/* Si hay columna de selección: posiciones 1, 2, 3, 9, 10 */
+.compras-table-container .rdt_TableCol:nth-child(1),
+.compras-table-container .rdt_TableCol:nth-child(2),
+.compras-table-container .rdt_TableCol:nth-child(3),
+.compras-table-container .rdt_TableCol:nth-child(9),
+.compras-table-container .rdt_TableCol:nth-child(10) {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+/* Columnas alineadas a la derecha */
+.compras-table-container .rdt_TableCol:nth-child(4),
+.compras-table-container .rdt_TableCol:nth-child(5),
+.compras-table-container .rdt_TableCol:nth-child(6),
+.compras-table-container .rdt_TableCol:nth-child(7),
+.compras-table-container .rdt_TableCol:nth-child(8) {
+  justify-content: flex-end !important;
+  text-align: right !important;
+}
+
+/* Celdas centradas */
+.compras-table-container .rdt_TableCell:nth-child(1),
+.compras-table-container .rdt_TableCell:nth-child(2),
+.compras-table-container .rdt_TableCell:nth-child(3),
+.compras-table-container .rdt_TableCell:nth-child(9),
+.compras-table-container .rdt_TableCell:nth-child(10) {
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+/* Celdas alineadas a la derecha */
+.compras-table-container .rdt_TableCell:nth-child(4),
+.compras-table-container .rdt_TableCell:nth-child(5),
+.compras-table-container .rdt_TableCell:nth-child(6),
+.compras-table-container .rdt_TableCell:nth-child(7),
+.compras-table-container .rdt_TableCell:nth-child(8) {
+  justify-content: flex-end !important;
+  text-align: right !important;
+}

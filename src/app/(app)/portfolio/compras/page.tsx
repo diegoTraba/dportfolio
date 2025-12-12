@@ -225,11 +225,11 @@ export default function Compras() {
         <h1 className="text-2xl title-custom-foreground mb-2">
           Mis Operaciones
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
+        {/* <p className="text-gray-600 dark:text-gray-400 mb-6">
           {compras.length > 0
             ? `Total de operaciones: ${compras.length}`
             : "No hay operaciones registradas"}
-        </p>
+        </p> */}
 
         {/* Filtros */}
         <div className="mb-8 p-4 bg-custom-card border border-custom-card rounded-lg">

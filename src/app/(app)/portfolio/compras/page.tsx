@@ -7,7 +7,7 @@ import FiltroFecha from "@/components/controles/FiltroFecha";
 import { IconoRefrescar } from "@/components/controles/Iconos";
 
 //interfaces
-import { ApiResponse, Compra } from "@/interfaces/comun.types";
+import { ApiResponse, Compra, PrecioActual } from "@/interfaces/comun.types";
 
 export default function Compras() {
   const userId = useUserId();
@@ -18,6 +18,15 @@ export default function Compras() {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
   const [fechaInicio, setFechaInicio] = useState<Date | null>(null);
   const [fechaFin, setFechaFin] = useState<Date | null>(null);
+  const [simboloSeleccionado, setSimboloSeleccionado] = useState<string>("");
+  const [preciosActuales, setPreciosActuales] = useState<{ [key: string]: number }>({});
+  const [loadingPrecios, setLoadingPrecios] = useState(false);
+
+  // Obtener símbolos de la variable de entorno
+  // const simbolosDisponibles = process.env.NEXT_PUBLIC_CRIPTOMONEDAS_ALERTAS 
+  //   ? process.env.NEXT_PUBLIC_CRIPTOMONEDAS_ALERTAS.split(',').map(s => s.trim()).filter(Boolean)
+  //   : [];
+  const simbolosDisponibles: string[] = process.env.NEXT_PUBLIC_CRIPTOMONEDAS_ALERTAS ? JSON.parse(process.env.NEXT_PUBLIC_CRIPTOMONEDAS_ALERTAS) : [];
 
   // Usamos useRef para evitar que el efecto se ejecute en la carga inicial
   const isInitialMount = useRef(true);
@@ -27,9 +36,48 @@ export default function Compras() {
     return date.toISOString().split("T")[0];
   };
 
+    // Función para obtener TODOS los precios actuales de las criptomonedas
+    const obtenerTodosPreciosActuales = useCallback(async () => {
+      try {
+        setLoadingPrecios(true);
+        const response = await fetch(`${BACKEND_URL}/api/usuario/obtenerTodosPreciosCriptomonedas`);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+          throw new Error(data.message || "Error al obtener precios actuales");
+        }
+        
+        // Transformar el array de precios a un objeto { simbolo: precio }
+        const preciosMap: { [key: string]: number } = {};
+        if (Array.isArray(data.data)) {
+          data.data.forEach((precio: PrecioActual) => {
+            preciosMap[precio.simbolo] = precio.precio;
+            console.log(precio.simbolo +": "+ precio.precio);
+          });
+        }
+        else{ console.log("data no es un array: "+ data.data);}
+        
+        setPreciosActuales(preciosMap);
+        console.log("Se obtuvieron correctamente los precios actuales: "+ preciosMap);
+        return preciosMap;
+      } catch (err) {
+        console.error("Error obteniendo precios actuales:", err);
+        // No lanzamos error aquí para no bloquear la vista de compras
+        return {};
+      } finally {
+        setLoadingPrecios(false);
+      }
+    }, [BACKEND_URL]);
+
   // Función para obtener compras desde el backend
   const fetchCompras = useCallback(
-    async (fechaDesde?: string, fechaHasta?: string) => {
+    async (fechaDesde?: string, fechaHasta?: string, simbolo?: string) => {
       if (!userId) {
         setLoading(false);
         return;
@@ -48,6 +96,10 @@ export default function Compras() {
 
         if (fechaHasta) {
           url += `&fechaHasta=${fechaHasta}`;
+        }
+
+        if (simbolo) {
+          url += `&simbolo=${simbolo}`;
         }
 
         const response = await fetch(url);
@@ -86,12 +138,16 @@ export default function Compras() {
         }));
 
         // Si no hay filtros de fecha, actualizamos ambas listas
-        if (!fechaDesde && !fechaHasta) {
+        if (!fechaDesde && !fechaHasta && !simbolo) {
           setCompras(comprasTransformadas);
         }
 
         // Siempre actualizamos las compras filtradas
         setComprasFiltradas(comprasTransformadas);
+
+        // Obtener precios actuales para calcular el cambio
+        // Esto se hará en paralelo y no bloqueará la carga de compras
+        obtenerTodosPreciosActuales();
       } catch (err) {
         console.error("Error fetching compras:", err);
         setError(
@@ -101,7 +157,7 @@ export default function Compras() {
         setLoading(false);
       }
     },
-    [userId, BACKEND_URL]
+    [userId, BACKEND_URL, obtenerTodosPreciosActuales]
   );
 
   // Cargar compras iniciales cuando userId esté disponible
@@ -123,14 +179,14 @@ export default function Compras() {
 
     // Debounce para evitar múltiples llamadas rápidas
     const timer = setTimeout(() => {
-      if (fechaInicio || fechaFin) {
+      if (fechaInicio || fechaFin || simboloSeleccionado) {
         // Si hay filtros, aplicar filtrado
         const fechaDesde = fechaInicio
           ? formatDateToISO(fechaInicio)
           : undefined;
         const fechaHasta = fechaFin ? formatDateToISO(fechaFin) : undefined;
 
-        fetchCompras(fechaDesde, fechaHasta);
+        fetchCompras(fechaDesde, fechaHasta, simboloSeleccionado || undefined);
       } else {
         // Si no hay filtros, mostrar todas las compras
         fetchCompras();
@@ -138,18 +194,25 @@ export default function Compras() {
     }, 300); // 300ms de debounce
 
     return () => clearTimeout(timer);
-  }, [fechaInicio, fechaFin]); // Solo dependemos de las fechas
+  }, [fechaInicio, fechaFin, simboloSeleccionado, fetchCompras]); // Solo dependemos de las fechas
 
   // Función para limpiar filtros
   const handleLimpiarFiltros = () => {
     setFechaInicio(null);
     setFechaFin(null);
+    setSimboloSeleccionado("");
     // Al limpiar filtros, cargamos todas las compras
     fetchCompras();
   };
 
+  // Función para actualizar precios manualmente
+  const handleActualizarPrecios = async () => {
+    await obtenerTodosPreciosActuales();
+  };
+
+
   // Calcular estadísticas de filtrado
-  const mostrarFiltros = fechaInicio || fechaFin;
+  const mostrarFiltros = fechaInicio || fechaFin || simboloSeleccionado;
   const totalFiltradas = comprasFiltradas.length;
   const porcentajeFiltrado =
     compras.length > 0
@@ -171,7 +234,7 @@ export default function Compras() {
         {/* Filtros */}
         <div className="mb-8 p-4 bg-custom-card border border-custom-card rounded-lg">
           <h2 className="text-lg title-custom-foreground mb-4">
-            Filtros de Fecha
+            Filtros
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -196,6 +259,24 @@ export default function Compras() {
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-medium mb-2 text-custom-foreground">
+                Símbolo
+              </label>
+              <select
+                value={simboloSeleccionado}
+                onChange={(e) => setSimboloSeleccionado(e.target.value)}
+                className="w-full px-4 py-3 bg-custom-surface border border-custom-border rounded-lg text-custom-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Todos los símbolos</option>
+                {simbolosDisponibles.map((simbolo) => (
+                  <option key={simbolo} value={simbolo}>
+                    {simbolo}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex items-end">
               <button
                 onClick={handleLimpiarFiltros}
@@ -212,12 +293,21 @@ export default function Compras() {
             <div className="mt-4 p-3 bg-alerta-activa border border-alerta-activa rounded-lg">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                 <div>
-                  <p className="text-sm text-custom-foreground">
+                <p className="text-sm text-custom-foreground">
+                    Mostrando operaciones
                     {fechaInicio && fechaFin
-                      ? `Mostrando operaciones del ${fechaInicio.toLocaleDateString("es-ES")} al ${fechaFin.toLocaleDateString("es-ES")}`
+                      ? ` del ${fechaInicio.toLocaleDateString("es-ES")} al ${fechaFin.toLocaleDateString("es-ES")}`
                       : fechaInicio
-                        ? `Mostrando operaciones desde el ${fechaInicio.toLocaleDateString("es-ES")}`
-                        : `Mostrando operaciones hasta el ${fechaFin?.toLocaleDateString("es-ES")}`}
+                        ? ` desde el ${fechaInicio.toLocaleDateString("es-ES")}`
+                        : fechaFin
+                          ? ` hasta el ${fechaFin?.toLocaleDateString("es-ES")}`
+                          : ""}
+                    {simboloSeleccionado && (
+                      <span>
+                        {fechaInicio || fechaFin ? " y " : " "}
+                        con símbolo: <strong>{simboloSeleccionado}</strong>
+                      </span>
+                    )}
                   </p>
                 </div>
                 <div className="text-sm text-custom-foreground">
@@ -235,7 +325,7 @@ export default function Compras() {
             <div>
               <p className="text-lg font-medium">Cargando operaciones...</p>
               <p className="text-sm text-gray-500">
-                {fechaInicio || fechaFin
+                {fechaInicio || fechaFin || simboloSeleccionado
                   ? "Aplicando filtros de fecha"
                   : "Obteniendo todas las operaciones"}
               </p>
@@ -299,7 +389,7 @@ export default function Compras() {
         {!loading && !error && comprasFiltradas.length > 0 && (
           <>
             <div className="mb-4">
-              <TablaCompras compras={comprasFiltradas} />
+              <TablaCompras compras={comprasFiltradas} preciosActuales={preciosActuales} />
             </div>
 
             {/* Información del pie */}

@@ -11,23 +11,25 @@
   justify-content: inherit !important;
 }
 
-/* Columnas centradas (basado en posición) */
-/* Si hay columna de selección: posiciones 1, 2, 3, 9, 10 */
+/* Columnas centradas */
+/* Selección(1), Exchange(2), Símbolo(3), Estado(10), Acciones(11) */
 .compras-table-container .rdt_TableCol:nth-child(1),
 .compras-table-container .rdt_TableCol:nth-child(2),
 .compras-table-container .rdt_TableCol:nth-child(3),
-.compras-table-container .rdt_TableCol:nth-child(9),
-.compras-table-container .rdt_TableCol:nth-child(10) {
+.compras-table-container .rdt_TableCol:nth-child(10),
+.compras-table-container .rdt_TableCol:nth-child(11) {
   justify-content: center !important;
   text-align: center !important;
 }
 
 /* Columnas alineadas a la derecha */
+/* Precio(4), Cantidad(5), Total(6), Cambio(7), Comisión(8), Fecha(9) */
 .compras-table-container .rdt_TableCol:nth-child(4),
 .compras-table-container .rdt_TableCol:nth-child(5),
 .compras-table-container .rdt_TableCol:nth-child(6),
 .compras-table-container .rdt_TableCol:nth-child(7),
-.compras-table-container .rdt_TableCol:nth-child(8) {
+.compras-table-container .rdt_TableCol:nth-child(8),
+.compras-table-container .rdt_TableCol:nth-child(9) {
   justify-content: flex-end !important;
   text-align: right !important;
 }
@@ -36,8 +38,8 @@
 .compras-table-container .rdt_TableCell:nth-child(1),
 .compras-table-container .rdt_TableCell:nth-child(2),
 .compras-table-container .rdt_TableCell:nth-child(3),
-.compras-table-container .rdt_TableCell:nth-child(9),
-.compras-table-container .rdt_TableCell:nth-child(10) {
+.compras-table-container .rdt_TableCell:nth-child(10),
+.compras-table-container .rdt_TableCell:nth-child(11) {
   justify-content: center !important;
   text-align: center !important;
 }
@@ -47,7 +49,8 @@
 .compras-table-container .rdt_TableCell:nth-child(5),
 .compras-table-container .rdt_TableCell:nth-child(6),
 .compras-table-container .rdt_TableCell:nth-child(7),
-.compras-table-container .rdt_TableCell:nth-child(8) {
+.compras-table-container .rdt_TableCell:nth-child(8),
+.compras-table-container .rdt_TableCell:nth-child(9) {
   justify-content: flex-end !important;
   text-align: right !important;
 }

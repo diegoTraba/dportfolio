@@ -102,3 +102,10 @@ export interface Compra {
   fechaCompra: string;
   vendida?: boolean; 
 }
+
+export interface PrecioActual {
+  id: number;
+  simbolo: string;
+  precio: number;
+  fechaActualizacion: string;
+}

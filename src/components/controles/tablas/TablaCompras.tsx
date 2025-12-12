@@ -1,16 +1,22 @@
-import DataTable, { TableColumn, TableStyles } from "react-data-table-component";
+import DataTable, {
+  TableColumn,
+  TableStyles,
+} from "react-data-table-component";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Compra } from "@/interfaces/comun.types";
-import { 
-  IconoReloj, 
-  IconoCheckCircle, 
+import {
+  IconoReloj,
+  IconoCheckCircle,
   IconoDolar,
-  IconoEtiqueta 
-} from '@/components/controles/Iconos';
-import './TablaCompras.css';
+  IconoEtiqueta,
+  IconoTrendingUp,
+  IconoTrendingDown,
+} from "@/components/controles/Iconos";
+import "./TablaCompras.css";
 
 interface TablaComprasProps {
   compras: Compra[];
+  preciosActuales?: { [key: string]: number };
   onVender?: (compra: Compra) => void;
   onMarcarVendido?: (compra: Compra) => void;
 }
@@ -19,27 +25,76 @@ interface TablaComprasProps {
 const formatDateSafe = (dateString: string): string => {
   try {
     const date = new Date(dateString);
-    
+
     // Verificar si la fecha es válida
     if (isNaN(date.getTime())) {
-      return 'Fecha inválida';
+      return "Fecha inválida";
     }
-    
+
     // Formatear a dd/mm/yyyy
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
-    
+
     return `${day}/${month}/${year}`;
   } catch (error) {
-    console.error('Error formateando fecha:', dateString, error);
-    return 'Fecha inválida';
+    console.error("Error formateando fecha:", dateString, error);
+    return "Fecha inválida";
   }
+};
+
+// Función para calcular el cambio
+const calcularCambio = (compra: Compra, precioActual?: number) => {
+  if (!precioActual || compra.vendida) return null;
+
+  const totalActual = precioActual * compra.cantidad;
+  const cambio = totalActual - compra.total;
+  const porcentaje = (cambio / compra.total) * 100;
+
+  return {
+    valor: cambio,
+    porcentaje: porcentaje,
+    totalActual: totalActual,
+  };
+};
+
+// Componente para mostrar el cambio
+const CambioDisplay = ({
+  cambio,
+}: {
+  cambio: { valor: number; porcentaje: number } | null;
+}) => {
+  if (cambio === null) {
+    return <div className="text-gray-500 text-sm">-</div>;
+  }
+
+  const isPositive = cambio.valor >= 0;
+
+  return (
+    <div
+      className={`flex flex-col items-end ${isPositive ? "text-green-500" : "text-red-500"}`}
+    >
+      <div className="flex items-center gap-1">
+        {isPositive ? (
+          <IconoTrendingUp className="w-3 h-3" />
+        ) : (
+          <IconoTrendingDown className="w-3 h-3" />
+        )}
+        <span className="font-semibold">${cambio.valor.toFixed(2)}</span>
+      </div>
+      <div
+        className={`text-xs ${isPositive ? "text-green-400" : "text-red-400"}`}
+      >
+        ({cambio.porcentaje >= 0 ? "+" : ""}
+        {cambio.porcentaje.toFixed(2)}%)
+      </div>
+    </div>
+  );
 };
 
 // Componente para el botón de estado
 const EstadoButton = ({ vendida }: { vendida?: boolean }) => {
-  const estado = vendida ? 'vendida' : 'pendiente';
+  const estado = vendida ? "vendida" : "pendiente";
   const config = {
     pendiente: {
       icon: IconoReloj,
@@ -77,84 +132,122 @@ const EstadoButton = ({ vendida }: { vendida?: boolean }) => {
 // Componente separado para las tarjetas móviles
 const MobileCards = ({
   compras,
+  preciosActuales = {},
   onVender,
   onMarcarVendido,
 }: {
   compras: Compra[];
+  preciosActuales: { [key: string]: number };
   onVender: (compra: Compra) => void;
   onMarcarVendido: (compra: Compra) => void;
 }) => (
   <div className="mobile-cards-container">
-    {compras.map((compra, index) => (
-      <div key={compra.id || index} className="purchase-card">
-        <div className="card-row">
-          <span className="label">Exchange:</span>
-          <span className="value">{compra.exchange}</span>
-        </div>
-        <div className="card-row">
-          <span className="label">Símbolo:</span>
-          <span className="value">{compra.simbolo}</span>
-        </div>
-        <div className="card-row">
-          <span className="label">Precio:</span>
-          <span className="value">${compra.precio.toFixed(2)}</span>
-        </div>
-        <div className="card-row">
-          <span className="label">Cantidad:</span>
-          <span className="value">{compra.cantidad.toFixed(4)}</span>
-        </div>
-        <div className="card-row">
-          <span className="label">Total:</span>
-          <span className="value">${compra.total?.toFixed(2)}</span>
-        </div>
-        <div className="card-row">
-          <span className="label">Comisión:</span>
-          <span className="value">
-            ${compra.comision?.toFixed(2) || "0.00"}
-          </span>
-        </div>
-        <div className="card-row">
-          <span className="label">Fecha:</span>
-          <span className="value">{formatDateSafe(compra.fechaCompra)}</span>
-        </div>
+    {compras.map((compra, index) => {
+      const precioActual = preciosActuales[compra.simbolo];
+      const cambio = calcularCambio(compra, precioActual);
+      
+      return (
+        <div key={compra.id || index} className="purchase-card">
+          <div className="card-row">
+            <span className="label">Exchange:</span>
+            <span className="value">{compra.exchange}</span>
+          </div>
+          <div className="card-row">
+            <span className="label">Símbolo:</span>
+            <span className="value">{compra.simbolo}</span>
+          </div>
+          <div className="card-row">
+            <span className="label">Precio Compra:</span>
+            <span className="value">${compra.precio.toFixed(2)}</span>
+          </div>
+          <div className="card-row">
+            <span className="label">Precio Actual:</span>
+            <span className="value">
+              {precioActual ? `$${precioActual.toFixed(2)}` : '-'}
+            </span>
+          </div>
+          <div className="card-row">
+            <span className="label">Cantidad:</span>
+            <span className="value">{compra.cantidad.toFixed(4)}</span>
+          </div>
+          <div className="card-row">
+            <span className="label">Total Compra:</span>
+            <span className="value">${compra.total?.toFixed(2)}</span>
+          </div>
+          {cambio && (
+            <div className="card-row">
+              <span className="label">Total Actual:</span>
+              <span className="value">${cambio.totalActual.toFixed(2)}</span>
+            </div>
+          )}
+          <div className="card-row">
+            <span className="label">Cambio:</span>
+            <div className="value">
+              {cambio ? (
+                <div className={`flex items-center gap-1 ${cambio.valor >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {cambio.valor >= 0 ? (
+                    <IconoTrendingUp className="w-4 h-4" />
+                  ) : (
+                    <IconoTrendingDown className="w-4 h-4" />
+                  )}
+                  <span>${cambio.valor.toFixed(2)}</span>
+                  <span className="text-xs">
+                    ({cambio.porcentaje >= 0 ? '+' : ''}{cambio.porcentaje.toFixed(2)}%)
+                  </span>
+                </div>
+              ) : (
+                <span className="text-gray-500">-</span>
+              )}
+            </div>
+          </div>
+          <div className="card-row">
+            <span className="label">Comisión:</span>
+            <span className="value">
+              ${compra.comision?.toFixed(2) || "0.00"}
+            </span>
+          </div>
+          <div className="card-row">
+            <span className="label">Fecha:</span>
+            <span className="value">{formatDateSafe(compra.fechaCompra)}</span>
+          </div>
 
-        {/* Nueva fila para Estado en móvil */}
-        <div className="card-row">
-          <span className="label">Estado:</span>
-          <div className="value flex items-center gap-2">
-            <EstadoButton vendida={compra.vendida} />
+          <div className="card-row">
+            <span className="label">Estado:</span>
+            <div className="value flex items-center gap-2">
+              <EstadoButton vendida={compra.vendida} />
+            </div>
+          </div>
+          <div className="card-row">
+            <span className="label">Acciones:</span>
+            <div className="value flex items-center gap-2">
+              <button
+                onClick={() => onVender(compra)}
+                className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-500'}`}
+                title="Vender"
+              >
+                <IconoDolar className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => onMarcarVendido(compra)}
+                className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? 'bg-green-500/20 text-green-500' : 'bg-green-500/10 hover:bg-green-500/20 text-green-500'}`}
+                title={compra.vendida ? "Ya vendida" : "Marcar como vendida"}
+              >
+                <IconoEtiqueta className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
-        {/* Nueva fila para Acciones en móvil */}
-        <div className="card-row">
-          <span className="label">Acciones:</span>
-          <div className="value flex items-center gap-2">
-            <button
-              onClick={() => onVender(compra)}
-              className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-500'}`}
-              title="Vender"
-            >
-              <IconoDolar className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => onMarcarVendido(compra)}
-              className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? 'bg-green-500/20 text-green-500' : 'bg-green-500/10 hover:bg-green-500/20 text-green-500'}`}
-              title={compra.vendida ? "Ya vendida" : "Marcar como vendida"}
-            >
-              <IconoEtiqueta className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    ))}
+      );
+    })}
   </div>
 );
 
-const TablaCompras = ({ 
-  compras, 
-  onVender, 
-  onMarcarVendido 
- }: TablaComprasProps) => {
+const TablaCompras = ({
+  compras,
+  preciosActuales = {},
+  onVender,
+  onMarcarVendido,
+}: TablaComprasProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -174,30 +267,36 @@ const TablaCompras = ({
     visibleRows.every((row) => selectedRows.includes(row.id));
 
   // Handlers para las acciones
-  const handleVender = useCallback((compra: Compra) => {
-    if (compra.vendida) {
-      // Si ya está vendida, no hacer nada
-      console.log('Esta compra ya está vendida');
-      return;
-    }
-    
-    if (onVender) {
-      onVender(compra);
-    } else {
-      console.log('Vender compra:', compra);
-      // Aquí iría la lógica para abrir modal de venta
-    }
-  }, [onVender]);
+  const handleVender = useCallback(
+    (compra: Compra) => {
+      if (compra.vendida) {
+        // Si ya está vendida, no hacer nada
+        console.log("Esta compra ya está vendida");
+        return;
+      }
 
-  const handleMarcarVendido = useCallback((compra: Compra) => {
-    if (onMarcarVendido) {
-      onMarcarVendido(compra);
-    } else {
-      console.log('Marcar como vendida:', compra);
-      // Aquí iría la lógica para cambiar el estado a vendida
-      // Ejemplo: actualizarCompra(compra.id, { vendida: true });
-    }
-  }, [onMarcarVendido]);
+      if (onVender) {
+        onVender(compra);
+      } else {
+        console.log("Vender compra:", compra);
+        // Aquí iría la lógica para abrir modal de venta
+      }
+    },
+    [onVender]
+  );
+
+  const handleMarcarVendido = useCallback(
+    (compra: Compra) => {
+      if (onMarcarVendido) {
+        onMarcarVendido(compra);
+      } else {
+        console.log("Marcar como vendida:", compra);
+        // Aquí iría la lógica para cambiar el estado a vendida
+        // Ejemplo: actualizarCompra(compra.id, { vendida: true });
+      }
+    },
+    [onMarcarVendido]
+  );
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -216,66 +315,69 @@ const TablaCompras = ({
         // Esperar a que la tabla se renderice completamente
         setTimeout(() => {
           // Seleccionar todos los headers de columna
-          const columnHeaders = document.querySelectorAll('div[role="columnheader"]');
-          
+          const columnHeaders = document.querySelectorAll(
+            'div[role="columnheader"]'
+          );
+
           columnHeaders.forEach((header, index) => {
             const headerElement = header as HTMLElement;
-            
+
             // Asegurar que tenga display flex
-            headerElement.style.display = 'flex';
-            headerElement.style.alignItems = 'center';
-            
-            // Si hay columna de selección (checkbox), las posiciones son:
+            headerElement.style.display = "flex";
+            headerElement.style.alignItems = "center";
+
+            // Ajustar las posiciones para incluir la nueva columna Cambio
             // 1: Selección, 2: Exchange, 3: Símbolo, 4: Precio, 5: Cantidad, 
-            // 6: Total, 7: Comisión, 8: Fecha, 9: Estado, 10: Acciones
-            
-            // Columnas centradas (1, 2, 3, 9, 10)
-            if ([1, 2, 3, 9, 10].includes(index + 1)) {
+            // 6: Total, 7: Cambio, 8: Comisión, 9: Fecha, 10: Estado, 11: Acciones
+
+            // Columnas centradas (1, 2, 3, 10, 11)
+            if ([1, 2, 3, 10, 11].includes(index + 1)) {
               headerElement.style.justifyContent = 'center';
               headerElement.style.textAlign = 'center';
             } 
-            // Columnas alineadas a la derecha (4, 5, 6, 7, 8)
-            else if ([4, 5, 6, 7, 8].includes(index + 1)) {
+            // Columnas alineadas a la derecha (4, 5, 6, 7, 8, 9)
+            else if ([4, 5, 6, 7, 8, 9].includes(index + 1)) {
               headerElement.style.justifyContent = 'flex-end';
               headerElement.style.textAlign = 'right';
             }
           });
-          
+
           // También aplicar a las celdas de contenido
           const gridCells = document.querySelectorAll('div[role="gridcell"]');
-          
+
           gridCells.forEach((cell, index) => {
             const cellElement = cell as HTMLElement;
-            
+
             // Calcular la posición de la columna dentro de la fila
-            const cellIndex = Array.from(cell.parentElement?.children || []).indexOf(cell) + 1;
-            
+            const cellIndex =
+              Array.from(cell.parentElement?.children || []).indexOf(cell) + 1;
+
             // Asegurar que tenga display flex
-            cellElement.style.display = 'flex';
-            cellElement.style.alignItems = 'center';
-            
-            // Columnas centradas (1, 2, 3, 9, 10)
-            if ([1, 2, 3, 9, 10].includes(cellIndex)) {
-              cellElement.style.justifyContent = 'center';
-              cellElement.style.textAlign = 'center';
-            } 
-            // Columnas alineadas a la derecha (4, 5, 6, 7, 8)
-            else if ([4, 5, 6, 7, 8].includes(cellIndex)) {
-              cellElement.style.justifyContent = 'flex-end';
-              cellElement.style.textAlign = 'right';
+            cellElement.style.display = "flex";
+            cellElement.style.alignItems = "center";
+
+            // Columnas centradas (1, 2, 3, 10, 11)
+            if ([1, 2, 3, 10, 11].includes(cellIndex)) {
+              cellElement.style.justifyContent = "center";
+              cellElement.style.textAlign = "center";
+            }
+            // Columnas alineadas a la derecha (4, 5, 6, 7, 8, 9)
+            else if ([4, 5, 6, 7, 8, 9].includes(cellIndex)) {
+              cellElement.style.justifyContent = "flex-end";
+              cellElement.style.textAlign = "right";
             }
           });
         }, 100); // Pequeño delay para asegurar que la tabla se haya renderizado
       };
-      
+
       // Ejecutar al montar y cuando cambien los datos o la página
       forceHeaderAlignment();
-      
+
       // También ejecutar cuando cambie el tamaño de la ventana
-      window.addEventListener('resize', forceHeaderAlignment);
-      
+      window.addEventListener("resize", forceHeaderAlignment);
+
       return () => {
-        window.removeEventListener('resize', forceHeaderAlignment);
+        window.removeEventListener("resize", forceHeaderAlignment);
       };
     }
   }, [isMobile, compras, currentPage, rowsPerPage]);
@@ -389,15 +491,14 @@ const TablaCompras = ({
   };
 
   const columns: TableColumn<Compra>[] = useMemo(() => {
-    // Configuración básica para todas las columnas
     const baseColumnProps = {
       style: {
-        paddingLeft: "12px",
-        paddingRight: "12px",
+        paddingLeft: "10px",
+        paddingRight: "10px",
       },
       headerStyle: {
-        paddingLeft: "12px",
-        paddingRight: "12px",
+        paddingLeft: "10px",
+        paddingRight: "10px",
       }
     };
 
@@ -407,34 +508,34 @@ const TablaCompras = ({
         selector: (row: Compra) => row.exchange,
         sortable: true,
         width: "10%",
-        minWidth: "100px",
-        ...baseColumnProps
+        ...baseColumnProps,
+        style:{ minWidth: "100px"}
       },
       {
         name: "Símbolo",
         selector: (row: Compra) => row.simbolo,
         sortable: true,
-        width: "10%",
-        minWidth: "100px",
-        ...baseColumnProps
+        width: "8%",
+        ...baseColumnProps,
+        style:{ minWidth: "90px"}
       },
       {
         name: "Precio",
         selector: (row: Compra) => row.precio,
         sortable: true,
         format: (row: Compra) => `$${row.precio.toFixed(2)}`,
-        width: "10%",
-        minWidth: "100px",
-        ...baseColumnProps
+        width: "9%",
+        ...baseColumnProps,
+        style:{ minWidth: "95px"}
       },
       {
         name: "Cantidad",
         selector: (row: Compra) => row.cantidad,
         sortable: true,
         format: (row: Compra) => row.cantidad.toFixed(4),
-        width: "11%",
-        minWidth: "100px",
-        ...baseColumnProps
+        width: "9%",
+        ...baseColumnProps,
+        style:{ minWidth: "95px"}
       },
       {
         name: "Total",
@@ -442,26 +543,46 @@ const TablaCompras = ({
         sortable: true,
         format: (row: Compra) => `$${row.total.toFixed(2)}`,
         width: "9%",
-        minWidth: "100px",
-        ...baseColumnProps
+        ...baseColumnProps,
+        style:{ minWidth: "95px"}
+      },
+      {
+        name: "Cambio",
+        cell: (row: Compra) => {
+          const precioActual = preciosActuales[row.simbolo];
+          const cambio = calcularCambio(row, precioActual);
+          return <CambioDisplay cambio={cambio} />;
+        },
+        sortable: true,
+        sortFunction: (rowA: Compra, rowB: Compra) => {
+          const precioActualA = preciosActuales[rowA.simbolo];
+          const cambioA = calcularCambio(rowA, precioActualA);
+          const precioActualB = preciosActuales[rowB.simbolo];
+          const cambioB = calcularCambio(rowB, precioActualB);
+          
+          return (cambioA?.valor || 0) - (cambioB?.valor || 0);
+        },
+        width: "10%",
+        ...baseColumnProps,
+        style:{ minWidth: "100px"}
       },
       {
         name: "Comisión",
         selector: (row: Compra) => row.comision || 0,
         sortable: true,
         format: (row: Compra) => `$${(row.comision || 0).toFixed(2)}`,
-        width: "10%",
-        minWidth: "100px",
-        ...baseColumnProps
+        width: "8%",
+        ...baseColumnProps,
+        style:{ minWidth: "90px"}
       },
       {
         name: "Fecha",
         selector: (row: Compra) => row.fechaCompra,
         sortable: true,
         format: (row: Compra) => formatDateSafe(row.fechaCompra),
-        width: "12%",
-        minWidth: "110px",
-        ...baseColumnProps
+        width: "10%",
+        ...baseColumnProps,
+        style:{ minWidth: "100px"}
       },
       {
         name: 'Estado',
@@ -476,9 +597,9 @@ const TablaCompras = ({
           const vendidaB = rowB.vendida ? 1 : 0;
           return vendidaA - vendidaB;
         },
-        width: '13%',
-        minWidth: '130px',
-        ...baseColumnProps
+        width: '10%',
+        ...baseColumnProps,
+        style:{ minWidth: "110px"}
       },
       {
         name: 'Acciones',
@@ -502,9 +623,9 @@ const TablaCompras = ({
           </div>
         ),
         sortable: false,
-        width: '10%',
-        minWidth: '120px',
-        ...baseColumnProps
+        width: '11%',
+        ...baseColumnProps,
+        style:{ minWidth: "120px"}
       },
     ];
 
@@ -532,9 +653,9 @@ const TablaCompras = ({
           </div>
         ),
         sortable: false,
-        width: "5%",
-        minWidth: "60px",
-        ...baseColumnProps
+        width: "4%",
+        ...baseColumnProps,
+        style:{ minWidth: "50px"}
       };
 
       return [selectionColumn, ...baseColumns];
@@ -548,13 +669,19 @@ const TablaCompras = ({
     handleSelectAllVisible,
     handleRowSelect,
     handleVender,
-    handleMarcarVendido
+    handleMarcarVendido,
+    preciosActuales
   ]);
 
   return (
     <div className="compras-table-container">
       {isMobile ? (
-        <MobileCards compras={compras} onVender={handleVender} onMarcarVendido={handleMarcarVendido} />
+        <MobileCards
+          compras={compras}
+          preciosActuales={preciosActuales}
+          onVender={handleVender}
+          onMarcarVendido={handleMarcarVendido}
+        />
       ) : (
         <>
           {/* Mostrar información de selección si hay filas seleccionadas */}

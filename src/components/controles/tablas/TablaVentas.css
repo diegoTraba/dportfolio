@@ -1,0 +1,66 @@
+/* TablaVentas.css - Similar a TablaCompras.css pero para ventas */
+.ventas-table-container {
+    width: 100%;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  /* Estilos para las tarjetas móviles */
+  .mobile-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px 0;
+  }
+  
+  .venta-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .venta-card .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--card-border);
+  }
+  
+  .venta-card .card-row:last-child {
+    border-bottom: none;
+  }
+  
+  .venta-card .label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--foreground-secondary);
+    min-width: 120px;
+  }
+  
+  .venta-card .value {
+    font-size: 14px;
+    color: var(--foreground);
+    text-align: right;
+    flex: 1;
+  }
+  
+  /* Estilos responsivos adicionales */
+  @media (max-width: 480px) {
+    .venta-card .card-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    
+    .venta-card .label {
+      min-width: auto;
+    }
+    
+    .venta-card .value {
+      text-align: left;
+      width: 100%;
+    }
+  }

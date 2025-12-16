@@ -97,10 +97,32 @@ export interface Compra {
   simbolo: string;
   precio: number;
   cantidad: number;
+  cantidadRestante?: number;
   total: number;
   comision: number;
+  comisionMoneda?: string;
   fechaCompra: string;
   vendida?: boolean; 
+}
+
+// Añade esto a tu archivo existente de interfaces
+export interface Venta {
+  id: number;
+  exchange: string;
+  simbolo: string;
+  precioCompra: number;
+  precioVenta: number;
+  cantidad: number;
+  totalCompra: number;
+  totalVenta: number;
+  beneficio: number;
+  porcentajeBeneficio: number;
+  comision: number;
+  comisionMoneda?: string;
+  fechaVenta: string;
+  // Si necesitas referencia a la compra original
+  compraId?: number;
+  idOrdenVenta?: string;
 }
 
 export interface PrecioActual {

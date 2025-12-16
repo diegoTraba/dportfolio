@@ -5,12 +5,12 @@ import DataTable, {
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Compra } from "@/interfaces/comun.types";
 import {
-  IconoReloj,
-  IconoCheckCircle,
   IconoDolar,
   IconoEtiqueta,
   IconoTrendingUp,
   IconoTrendingDown,
+  IconoInfo,
+  IconoCerrar,
 } from "@/components/controles/Iconos";
 import "./TablaCompras.css";
 
@@ -19,6 +19,8 @@ interface TablaComprasProps {
   preciosActuales?: { [key: string]: number };
   onVender?: (compra: Compra) => void;
   onMarcarVendido?: (compra: Compra) => void;
+  userId?: string; // Nuevo: ID del usuario para el endpoint
+  onVentaExitosa?: () => void; // Callback cuando una venta se completa
 }
 
 // Función auxiliar para formatear fechas de manera segura
@@ -47,7 +49,8 @@ const formatDateSafe = (dateString: string): string => {
 const calcularCambio = (compra: Compra, precioActual?: number) => {
   if (!precioActual || compra.vendida) return null;
 
-  const totalActual = precioActual * compra.cantidad;
+  const cantidad = compra.cantidadRestante || compra.cantidad;
+  const totalActual = precioActual * cantidad;
   const cambio = totalActual - compra.total;
   const porcentaje = (cambio / compra.total) * 100;
 
@@ -92,40 +95,253 @@ const CambioDisplay = ({
   );
 };
 
-// Componente para el botón de estado
-const EstadoButton = ({ vendida }: { vendida?: boolean }) => {
-  const estado = vendida ? "vendida" : "pendiente";
-  const config = {
-    pendiente: {
-      icon: IconoReloj,
-      color: "bg-yellow-500",
-      textColor: "text-yellow-500",
-      bgColor: "bg-yellow-500/10",
-      borderColor: "border-yellow-500/20",
-      label: "Pendiente",
-    },
-    vendida: {
-      icon: IconoCheckCircle,
-      color: "bg-green-500",
-      textColor: "text-green-500",
-      bgColor: "bg-green-500/10",
-      borderColor: "border-green-500/20",
-      label: "Vendida",
-    },
+// Componente Modal para confirmar venta - VERSIÓN SIN USEEFFECT
+interface ModalVentaProps {
+  isOpen: boolean;
+  onClose: () => void;
+  compra: Compra | null;
+  precioActual: number;
+  onConfirmar: (data: {
+    cantidad: number;
+    tipoOrden: "MARKET" | "LIMIT";
+    precioLimite?: number;
+    quoteQuantity?: number;
+  }) => void;
+  isLoading?: boolean;
+}
+
+const ModalVenta: React.FC<ModalVentaProps> = ({
+  isOpen,
+  onClose,
+  compra,
+  precioActual,
+  onConfirmar,
+  isLoading = false,
+}) => {
+  // Inicializar con valores por defecto
+  const [cantidad, setCantidad] = useState("");
+  const [tipoOrden, setTipoOrden] = useState<"MARKET" | "LIMIT">("MARKET");
+  const [precioLimite, setPrecioLimite] = useState("");
+  const [quoteQuantity, setQuoteQuantity] = useState("");
+
+  // Resetear estado cuando el modal se cierra
+  const handleClose = () => {
+    setCantidad("");
+    setTipoOrden("MARKET");
+    setPrecioLimite("");
+    setQuoteQuantity("");
+    onClose();
   };
 
-  const { icon: Icon, color, bgColor, borderColor, label } = config[estado];
+  // Obtener cantidad disponible (se recalcula en cada render)
+  const cantidadDisponible = compra
+    ? compra.cantidadRestante || compra.cantidad
+    : 0;
+
+  // Cuando el componente se monta/actualiza con una nueva compra
+  // Inicializamos la cantidad si está vacía
+  if (compra && isOpen && cantidad === "") {
+    // Esto se ejecuta solo durante el render, no es un efecto
+    // Es seguro porque es síncrono durante el renderizado
+    setCantidad(cantidadDisponible.toString());
+  }
+
+  if (!isOpen || !compra) return null;
+
+  const valorVentaEstimado = parseFloat(cantidad || "0") * precioActual;
+  const esVentaParcial = parseFloat(cantidad || "0") < cantidadDisponible;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const cantidadNum = parseFloat(cantidad);
+    const precioLimiteNum = precioLimite ? parseFloat(precioLimite) : undefined;
+    const quoteQuantityNum = quoteQuantity
+      ? parseFloat(quoteQuantity)
+      : undefined;
+
+    if (cantidadNum > cantidadDisponible) {
+      alert("No puedes vender más de lo disponible");
+      return;
+    }
+
+    if (cantidadNum <= 0) {
+      alert("La cantidad debe ser mayor que 0");
+      return;
+    }
+
+    onConfirmar({
+      cantidad: cantidadNum,
+      tipoOrden,
+      precioLimite: precioLimiteNum,
+      quoteQuantity: quoteQuantityNum,
+    });
+  };
 
   return (
-    <button
-      className={`flex items-center justify-center gap-1 px-2 py-1 rounded-full ${bgColor} border ${borderColor} transition-all hover:opacity-80`}
-      title={label}
-    >
-      <Icon className={`w-4 h-4 ${color.replace("bg-", "text-")}`} />
-      <span className={`text-xs font-medium ${color.replace("bg-", "text-")}`}>
-        {label}
-      </span>
-    </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-[var(--card-bg)] rounded-lg shadow-xl w-full max-w-md mx-4 border border-[var(--card-border)]">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--card-border)]">
+          <h2 className="text-lg font-semibold text-[var(--foreground)]">
+            Vender {compra.simbolo}
+          </h2>
+          <button
+            onClick={handleClose}
+            className="p-1 rounded-lg hover:bg-[var(--surface)] transition-colors"
+          >
+            <IconoCerrar className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {/* Información de la compra */}
+          <div className="p-3 bg-[var(--surface)] rounded-lg">
+            <div className="flex justify-between mb-2">
+              <span className="text-sm text-[var(--foreground-secondary)]">
+                Disponible:
+              </span>
+              <span className="font-medium">
+                {cantidadDisponible.toFixed(4)}{" "}
+                {compra.simbolo.replace("USDC", "").replace("USDT", "")}
+              </span>
+            </div>
+            <div className="flex justify-between mb-2">
+              <span className="text-sm text-[var(--foreground-secondary)]">
+                Precio compra:
+              </span>
+              <span className="font-medium">${compra.precio.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-[var(--foreground-secondary)]">
+                Precio actual:
+              </span>
+              <span className="font-medium">${precioActual.toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* Cantidad a vender */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-1">
+              Cantidad a vender
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                step="any"
+                value={cantidad}
+                onChange={(e) => setCantidad(e.target.value)}
+                className="flex-1 p-2 border border-[var(--card-border)] rounded-lg bg-[var(--card-bg)] text-[var(--foreground)]"
+                placeholder="Cantidad"
+                min="0"
+                max={cantidadDisponible}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setCantidad(cantidadDisponible.toString())}
+                className="px-3 py-2 text-sm bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-lg transition-colors"
+              >
+                Máx
+              </button>
+            </div>
+            <div className="mt-1 text-xs text-[var(--foreground-secondary)]">
+              {esVentaParcial ? "Venta parcial" : "Venta total"}
+            </div>
+          </div>
+
+          {/* Valor estimado */}
+          <div className="p-3 bg-[var(--surface)] rounded-lg">
+            <div className="flex justify-between">
+              <span className="text-sm text-[var(--foreground-secondary)]">
+                Valor estimado:
+              </span>
+              <span className="font-medium">
+                ${valorVentaEstimado.toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          {/* Tipo de orden */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-2">
+              Tipo de orden
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setTipoOrden("MARKET")}
+                className={`flex-1 py-2 px-3 rounded-lg transition-colors ${tipoOrden === "MARKET" ? "bg-blue-500 text-white" : "bg-[var(--surface)] text-[var(--foreground)]"}`}
+              >
+                Mercado
+              </button>
+              <button
+                type="button"
+                onClick={() => setTipoOrden("LIMIT")}
+                className={`flex-1 py-2 px-3 rounded-lg transition-colors ${tipoOrden === "LIMIT" ? "bg-blue-500 text-white" : "bg-[var(--surface)] text-[var(--foreground)]"}`}
+              >
+                Límite
+              </button>
+            </div>
+          </div>
+
+          {/* Precio límite (solo para órdenes LIMIT) */}
+          {tipoOrden === "LIMIT" && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-1">
+                Precio límite
+              </label>
+              <input
+                type="number"
+                step="any"
+                value={precioLimite}
+                onChange={(e) => setPrecioLimite(e.target.value)}
+                className="w-full p-2 border border-[var(--card-border)] rounded-lg bg-[var(--card-bg)] text-[var(--foreground)]"
+                placeholder="Ej: 1.25"
+                required={tipoOrden === "LIMIT"}
+              />
+            </div>
+          )}
+
+          {/* Quote Quantity (opcional) */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-1">
+              Monto fijo a obtener (opcional)
+            </label>
+            <input
+              type="number"
+              step="any"
+              value={quoteQuantity}
+              onChange={(e) => setQuoteQuantity(e.target.value)}
+              className="w-full p-2 border border-[var(--card-border)] rounded-lg bg-[var(--card-bg)] text-[var(--foreground)]"
+              placeholder="Ej: 1000 (USDC/USDT)"
+            />
+            <div className="mt-1 text-xs text-[var(--foreground-secondary)] flex items-center gap-1">
+              <IconoInfo className="w-3 h-3" />
+              Dejar vacío para vender por cantidad del activo
+            </div>
+          </div>
+
+          {/* Botones */}
+          <div className="flex gap-3 pt-4 border-t border-[var(--card-border)]">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="flex-1 py-2 px-4 rounded-lg border border-[var(--card-border)] hover:bg-[var(--surface)] transition-colors"
+              disabled={isLoading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-2 px-4 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+            >
+              {isLoading ? "Procesando..." : "Confirmar Venta"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
 
@@ -145,7 +361,8 @@ const MobileCards = ({
     {compras.map((compra, index) => {
       const precioActual = preciosActuales[compra.simbolo];
       const cambio = calcularCambio(compra, precioActual);
-      
+      const cantidadDisponible = compra.cantidadRestante || compra.cantidad;
+
       return (
         <div key={compra.id || index} className="purchase-card">
           <div className="card-row">
@@ -163,7 +380,7 @@ const MobileCards = ({
           <div className="card-row">
             <span className="label">Precio Actual:</span>
             <span className="value">
-              {precioActual ? `$${precioActual.toFixed(2)}` : '-'}
+              {precioActual ? `$${precioActual.toFixed(2)}` : "-"}
             </span>
           </div>
           <div className="card-row">
@@ -184,7 +401,9 @@ const MobileCards = ({
             <span className="label">Cambio:</span>
             <div className="value">
               {cambio ? (
-                <div className={`flex items-center gap-1 ${cambio.valor >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                <div
+                  className={`flex items-center gap-1 ${cambio.valor >= 0 ? "text-green-500" : "text-red-500"}`}
+                >
                   {cambio.valor >= 0 ? (
                     <IconoTrendingUp className="w-4 h-4" />
                   ) : (
@@ -192,7 +411,8 @@ const MobileCards = ({
                   )}
                   <span>${cambio.valor.toFixed(2)}</span>
                   <span className="text-xs">
-                    ({cambio.porcentaje >= 0 ? '+' : ''}{cambio.porcentaje.toFixed(2)}%)
+                    ({cambio.porcentaje >= 0 ? "+" : ""}
+                    {cambio.porcentaje.toFixed(2)}%)
                   </span>
                 </div>
               ) : (
@@ -203,33 +423,42 @@ const MobileCards = ({
           <div className="card-row">
             <span className="label">Comisión:</span>
             <span className="value">
-              ${compra.comision?.toFixed(2) || "0.00"}
+              {compra.comision?.toFixed(2) + " " || "0.00 "}{" "}
+              {compra.comisionMoneda?.toString() || ""}
             </span>
           </div>
           <div className="card-row">
             <span className="label">Fecha:</span>
             <span className="value">{formatDateSafe(compra.fechaCompra)}</span>
           </div>
-
           <div className="card-row">
             <span className="label">Estado:</span>
-            <div className="value flex items-center gap-2">
-              <EstadoButton vendida={compra.vendida} />
-            </div>
+            <span className="value">
+              {compra.vendida ? (
+                <span className="text-green-500 font-medium">Vendida</span>
+              ) : cantidadDisponible < compra.cantidad ? (
+                <span className="text-blue-500 font-medium">
+                  Parcialmente vendida
+                </span>
+              ) : (
+                <span className="text-gray-500">Disponible</span>
+              )}
+            </span>
           </div>
           <div className="card-row">
             <span className="label">Acciones:</span>
             <div className="value flex items-center gap-2">
               <button
                 onClick={() => onVender(compra)}
-                className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-500'}`}
+                className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-blue-500/10 hover:bg-blue-500/20 text-blue-500"}`}
                 title="Vender"
+                disabled={compra.vendida}
               >
                 <IconoDolar className="w-4 h-4" />
               </button>
               <button
                 onClick={() => onMarcarVendido(compra)}
-                className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? 'bg-green-500/20 text-green-500' : 'bg-green-500/10 hover:bg-green-500/20 text-green-500'}`}
+                className={`p-1.5 rounded-lg transition-colors ${compra.vendida ? "bg-green-500/20 text-green-500" : "bg-green-500/10 hover:bg-green-500/20 text-green-500"}`}
                 title={compra.vendida ? "Ya vendida" : "Marcar como vendida"}
               >
                 <IconoEtiqueta className="w-4 h-4" />
@@ -247,11 +476,20 @@ const TablaCompras = ({
   preciosActuales = {},
   onVender,
   onMarcarVendido,
+  userId,
+  onVentaExitosa,
 }: TablaComprasProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Estados para el modal de venta
+  const [modalVentaOpen, setModalVentaOpen] = useState(false);
+  const [compraSeleccionada, setCompraSeleccionada] = useState<Compra | null>(
+    null
+  );
+  const [isLoadingVenta, setIsLoadingVenta] = useState(false);
 
   // Calcular las filas visibles en la página actual
   const getVisibleRows = useCallback(() => {
@@ -266,23 +504,115 @@ const TablaCompras = ({
     visibleRows.length > 0 &&
     visibleRows.every((row) => selectedRows.includes(row.id));
 
-  // Handlers para las acciones
-  const handleVender = useCallback(
+  // Handler para abrir modal de venta
+  const handleAbrirModalVenta = useCallback(
     (compra: Compra) => {
       if (compra.vendida) {
-        // Si ya está vendida, no hacer nada
         console.log("Esta compra ya está vendida");
         return;
       }
 
+      if (!userId) {
+        console.error("No hay userId disponible para realizar la venta");
+        alert(
+          "Error: No se pudo identificar al usuario. Por favor, inicia sesión nuevamente."
+        );
+        return;
+      }
+
+      setCompraSeleccionada(compra);
+      setModalVentaOpen(true);
+    },
+    [userId]
+  );
+
+  // Define la interfaz para el payload de venta
+  interface VentaPayload {
+    compraId: number;
+    symbol: string;
+    type: "MARKET" | "LIMIT";
+    quantity?: number;
+    quoteQuantity?: number;
+    price?: number;
+  }
+
+  // Handler para confirmar venta
+  const handleConfirmarVenta = useCallback(async (data: {
+    cantidad: number;
+    tipoOrden: "MARKET" | "LIMIT";
+    precioLimite?: number;
+    quoteQuantity?: number;
+  }) => {
+    if (!compraSeleccionada || !userId) return;
+  
+    setIsLoadingVenta(true);
+    try {
+      // Crear payload con tipo específico
+      const payload: VentaPayload = {
+        compraId: compraSeleccionada.id,
+        symbol: compraSeleccionada.simbolo,
+        type: data.tipoOrden,
+      };
+  
+      // Usar quoteQuantity si se especificó, de lo contrario usar quantity
+      if (data.quoteQuantity) {
+        payload.quoteQuantity = data.quoteQuantity;
+      } else {
+        payload.quantity = data.cantidad;
+      }
+  
+      if (data.tipoOrden === "LIMIT" && data.precioLimite) {
+        payload.price = data.precioLimite;
+      }
+  
+      console.log("Enviando orden de venta:", payload);
+  
+      const response = await fetch(`/api/binance/user/${userId}/sell`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      const result = await response.json();
+  
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Error al ejecutar la venta");
+      }
+  
+      console.log("✅ Venta ejecutada exitosamente:", result);
+      
+      // Cerrar modal
+      setModalVentaOpen(false);
+      setCompraSeleccionada(null);
+      
+      // Mostrar mensaje de éxito
+      alert(`Venta ejecutada exitosamente. Orden ID: ${result.localId || result.order?.orderId}`);
+      
+      // Llamar al callback si existe
+      if (onVentaExitosa) {
+        onVentaExitosa();
+      }
+      
+    } catch (error) {
+      console.error("❌ Error en la venta:", error);
+      alert(`Error al ejecutar la venta: ${error instanceof Error ? error.message : "Error desconocido"}`);
+    } finally {
+      setIsLoadingVenta(false);
+    }
+  }, [compraSeleccionada, userId, onVentaExitosa]);
+
+  // Handler para el botón de vender (compatibilidad con prop onVender)
+  const handleVender = useCallback(
+    (compra: Compra) => {
       if (onVender) {
         onVender(compra);
       } else {
-        console.log("Vender compra:", compra);
-        // Aquí iría la lógica para abrir modal de venta
+        handleAbrirModalVenta(compra);
       }
     },
-    [onVender]
+    [onVender, handleAbrirModalVenta]
   );
 
   const handleMarcarVendido = useCallback(
@@ -291,8 +621,6 @@ const TablaCompras = ({
         onMarcarVendido(compra);
       } else {
         console.log("Marcar como vendida:", compra);
-        // Aquí iría la lógica para cambiar el estado a vendida
-        // Ejemplo: actualizarCompra(compra.id, { vendida: true });
       }
     },
     [onMarcarVendido]
@@ -327,18 +655,18 @@ const TablaCompras = ({
             headerElement.style.alignItems = "center";
 
             // Ajustar las posiciones para incluir la nueva columna Cambio
-            // 1: Selección, 2: Exchange, 3: Símbolo, 4: Precio, 5: Cantidad, 
-            // 6: Total, 7: Cambio, 8: Comisión, 9: Fecha, 10: Estado, 11: Acciones
+            // 1: Selección, 2: Exchange, 3: Símbolo, 4: Precio, 5: Cantidad,
+            // 6: Total, 7: Cambio, 8: Comisión, 9: Fecha, 10: Acciones
 
-            // Columnas centradas (1, 2, 3, 10, 11)
-            if ([1, 2, 3, 10, 11].includes(index + 1)) {
-              headerElement.style.justifyContent = 'center';
-              headerElement.style.textAlign = 'center';
-            } 
+            // Columnas centradas (1, 2, 3, 10)
+            if ([1, 2, 3, 10].includes(index + 1)) {
+              headerElement.style.justifyContent = "center";
+              headerElement.style.textAlign = "center";
+            }
             // Columnas alineadas a la derecha (4, 5, 6, 7, 8, 9)
             else if ([4, 5, 6, 7, 8, 9].includes(index + 1)) {
-              headerElement.style.justifyContent = 'flex-end';
-              headerElement.style.textAlign = 'right';
+              headerElement.style.justifyContent = "flex-end";
+              headerElement.style.textAlign = "right";
             }
           });
 
@@ -356,8 +684,8 @@ const TablaCompras = ({
             cellElement.style.display = "flex";
             cellElement.style.alignItems = "center";
 
-            // Columnas centradas (1, 2, 3, 10, 11)
-            if ([1, 2, 3, 10, 11].includes(cellIndex)) {
+            // Columnas centradas (1, 2, 3, 10)
+            if ([1, 2, 3, 10].includes(cellIndex)) {
               cellElement.style.justifyContent = "center";
               cellElement.style.textAlign = "center";
             }
@@ -455,7 +783,6 @@ const TablaCompras = ({
         fontWeight: "bold",
         paddingLeft: "12px",
         paddingRight: "12px",
-        // No definimos justifyContent aquí porque lo manejaremos con JS
       },
     },
     cells: {
@@ -465,7 +792,6 @@ const TablaCompras = ({
         fontSize: "14px",
         paddingLeft: "12px",
         paddingRight: "12px",
-        // No definimos justifyContent aquí porque lo manejaremos con JS
       },
     },
     rows: {
@@ -499,7 +825,7 @@ const TablaCompras = ({
       headerStyle: {
         paddingLeft: "10px",
         paddingRight: "10px",
-      }
+      },
     };
 
     const baseColumns: TableColumn<Compra>[] = [
@@ -507,44 +833,44 @@ const TablaCompras = ({
         name: "Exchange",
         selector: (row: Compra) => row.exchange,
         sortable: true,
-        width: "10%",
+        width: "12%",
         ...baseColumnProps,
-        style:{ minWidth: "100px"}
+        style: { minWidth: "110px" },
       },
       {
         name: "Símbolo",
         selector: (row: Compra) => row.simbolo,
         sortable: true,
-        width: "8%",
+        width: "10%",
         ...baseColumnProps,
-        style:{ minWidth: "90px"}
+        style: { minWidth: "100px" },
       },
       {
         name: "Precio",
         selector: (row: Compra) => row.precio,
         sortable: true,
         format: (row: Compra) => `$${row.precio.toFixed(2)}`,
-        width: "9%",
+        width: "11%",
         ...baseColumnProps,
-        style:{ minWidth: "95px"}
+        style: { minWidth: "105px" },
       },
       {
         name: "Cantidad",
         selector: (row: Compra) => row.cantidad,
         sortable: true,
         format: (row: Compra) => row.cantidad.toFixed(4),
-        width: "9%",
+        width: "11%",
         ...baseColumnProps,
-        style:{ minWidth: "95px"}
+        style: { minWidth: "105px" },
       },
       {
         name: "Total",
         selector: (row: Compra) => row.total,
         sortable: true,
         format: (row: Compra) => `$${row.total.toFixed(2)}`,
-        width: "9%",
+        width: "11%",
         ...baseColumnProps,
-        style:{ minWidth: "95px"}
+        style: { minWidth: "105px" },
       },
       {
         name: "Cambio",
@@ -559,21 +885,22 @@ const TablaCompras = ({
           const cambioA = calcularCambio(rowA, precioActualA);
           const precioActualB = preciosActuales[rowB.simbolo];
           const cambioB = calcularCambio(rowB, precioActualB);
-          
+
           return (cambioA?.valor || 0) - (cambioB?.valor || 0);
         },
         width: "10%",
         ...baseColumnProps,
-        style:{ minWidth: "100px"}
+        style: { minWidth: "100px" },
       },
       {
         name: "Comisión",
         selector: (row: Compra) => row.comision || 0,
         sortable: true,
-        format: (row: Compra) => `$${(row.comision || 0).toFixed(2)}`,
-        width: "8%",
+        format: (row: Compra) =>
+          `${(row.comision || 0).toFixed(2) + " "} ${row.comisionMoneda || ""}`,
+        width: "10%",
         ...baseColumnProps,
-        style:{ minWidth: "90px"}
+        style: { minWidth: "100px" },
       },
       {
         name: "Fecha",
@@ -582,32 +909,15 @@ const TablaCompras = ({
         format: (row: Compra) => formatDateSafe(row.fechaCompra),
         width: "10%",
         ...baseColumnProps,
-        style:{ minWidth: "100px"}
+        style: { minWidth: "100px" },
       },
       {
-        name: 'Estado',
-        cell: (row: Compra) => (
-          <div className="flex items-center justify-center w-full">
-            <EstadoButton vendida={row.vendida} />
-          </div>
-        ),
-        sortable: true,
-        sortFunction: (rowA: Compra, rowB: Compra) => {
-          const vendidaA = rowA.vendida ? 1 : 0;
-          const vendidaB = rowB.vendida ? 1 : 0;
-          return vendidaA - vendidaB;
-        },
-        width: '10%',
-        ...baseColumnProps,
-        style:{ minWidth: "110px"}
-      },
-      {
-        name: 'Acciones',
+        name: "Acciones",
         cell: (row: Compra) => (
           <div className="flex items-center justify-center w-full gap-1">
             <button
               onClick={() => handleVender(row)}
-              className={`p-1 rounded-lg transition-colors ${row.vendida ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-500'}`}
+              className={`p-1 rounded-lg transition-colors ${row.vendida ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-blue-500/10 hover:bg-blue-500/20 text-blue-500"}`}
               title={row.vendida ? "Ya vendida" : "Vender"}
               disabled={row.vendida}
             >
@@ -615,7 +925,7 @@ const TablaCompras = ({
             </button>
             <button
               onClick={() => handleMarcarVendido(row)}
-              className={`p-1 rounded-lg transition-colors ${row.vendida ? 'bg-green-500/20 text-green-500' : 'bg-green-500/10 hover:bg-green-500/20 text-green-500'}`}
+              className={`p-1 rounded-lg transition-colors ${row.vendida ? "bg-green-500/20 text-green-500" : "bg-green-500/10 hover:bg-green-500/20 text-green-500"}`}
               title={row.vendida ? "Ya vendida" : "Marcar como vendida"}
             >
               <IconoEtiqueta className="w-3.5 h-3.5" />
@@ -623,9 +933,9 @@ const TablaCompras = ({
           </div>
         ),
         sortable: false,
-        width: '11%',
+        width: "10%",
         ...baseColumnProps,
-        style:{ minWidth: "120px"}
+        style: { minWidth: "100px" },
       },
     ];
 
@@ -655,7 +965,7 @@ const TablaCompras = ({
         sortable: false,
         width: "4%",
         ...baseColumnProps,
-        style:{ minWidth: "50px"}
+        style: { minWidth: "50px" },
       };
 
       return [selectionColumn, ...baseColumns];
@@ -670,51 +980,71 @@ const TablaCompras = ({
     handleRowSelect,
     handleVender,
     handleMarcarVendido,
-    preciosActuales
+    preciosActuales,
   ]);
 
-  return (
-    <div className="compras-table-container">
-      {isMobile ? (
-        <MobileCards
-          compras={compras}
-          preciosActuales={preciosActuales}
-          onVender={handleVender}
-          onMarcarVendido={handleMarcarVendido}
-        />
-      ) : (
-        <>
-          {/* Mostrar información de selección si hay filas seleccionadas */}
-          {selectedRows.length > 0 && (
-            <div className="mb-4 p-3 bg-alerta-activa border border-alerta-activa rounded-lg">
-              <p className="text-sm text-custom-foreground">
-                {selectedRows.length} fila(s) seleccionada(s)
-              </p>
-            </div>
-          )}
+  // Obtener precio actual para el modal
+  const precioActualModal = compraSeleccionada
+    ? preciosActuales[compraSeleccionada.simbolo] || 0
+    : 0;
 
-          <div className="overflow-x-auto rounded-lg border border-[var(--card-border)]">
-            <DataTable
-              columns={columns}
-              data={compras}
-              customStyles={customStyles}
-              pagination
-              paginationPerPage={rowsPerPage}
-              paginationRowsPerPageOptions={[10, 25, 50, 100]}
-              onChangePage={handlePageChange}
-              onChangeRowsPerPage={handlePerRowsChange}
-              highlightOnHover
-              striped
-              noDataComponent={
-                <div className="text-center py-8 text-custom-foreground opacity-70">
-                  No se encontraron operaciones
-                </div>
-              }
-            />
-          </div>
-        </>
-      )}
-    </div>
+  return (
+    <>
+      <div className="compras-table-container">
+        {isMobile ? (
+          <MobileCards
+            compras={compras}
+            preciosActuales={preciosActuales}
+            onVender={handleVender}
+            onMarcarVendido={handleMarcarVendido}
+          />
+        ) : (
+          <>
+            {/* Mostrar información de selección si hay filas seleccionadas */}
+            {selectedRows.length > 0 && (
+              <div className="mb-4 p-3 bg-alerta-activa border border-alerta-activa rounded-lg">
+                <p className="text-sm text-custom-foreground">
+                  {selectedRows.length} fila(s) seleccionada(s)
+                </p>
+              </div>
+            )}
+
+            <div className="overflow-x-auto rounded-lg border border-[var(--card-border)]">
+              <DataTable
+                columns={columns}
+                data={compras}
+                customStyles={customStyles}
+                pagination
+                paginationPerPage={rowsPerPage}
+                paginationRowsPerPageOptions={[10, 25, 50, 100]}
+                onChangePage={handlePageChange}
+                onChangeRowsPerPage={handlePerRowsChange}
+                highlightOnHover
+                striped
+                noDataComponent={
+                  <div className="text-center py-8 text-custom-foreground opacity-70">
+                    No se encontraron operaciones
+                  </div>
+                }
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Modal de venta */}
+      <ModalVenta
+        isOpen={modalVentaOpen}
+        onClose={() => {
+          setModalVentaOpen(false);
+          setCompraSeleccionada(null);
+        }}
+        compra={compraSeleccionada}
+        precioActual={precioActualModal}
+        onConfirmar={handleConfirmarVenta}
+        isLoading={isLoadingVenta}
+      />
+    </>
   );
 };
 

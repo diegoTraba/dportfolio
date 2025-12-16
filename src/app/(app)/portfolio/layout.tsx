@@ -12,6 +12,11 @@ const pestanias = [
     label: 'Compras',
     path: '/portfolio/compras',
   },
+  {
+    id: 'ventas',
+    label: 'Ventas',
+    path: '/portfolio/ventas',
+  },
 ];
 
 export default function DashboardLayout({

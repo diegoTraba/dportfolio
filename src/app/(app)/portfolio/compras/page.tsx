@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useUserId } from "@/hooks/useUserId";
 import TablaCompras from "@/components/controles/tablas/TablaCompras";
 import FiltroFecha from "@/components/controles/FiltroFecha";
-import { IconoRefrescar } from "@/components/controles/Iconos";
+import { IconoRefrescar,IconoMas } from "@/components/controles/Iconos";
+import Boton from '@/components/controles/Boton'
 
 //interfaces
 import { ApiResponse, Compra, PrecioActual } from "@/interfaces/comun.types";
@@ -21,6 +23,7 @@ export default function Compras() {
   const [simboloSeleccionado, setSimboloSeleccionado] = useState<string>("");
   const [preciosActuales, setPreciosActuales] = useState<{ [key: string]: number }>({});
   const [loadingPrecios, setLoadingPrecios] = useState(false);
+  const navegador = useRouter();
 
   // Obtener símbolos de la variable de entorno
   // const simbolosDisponibles = process.env.NEXT_PUBLIC_CRIPTOMONEDAS_ALERTAS 
@@ -133,6 +136,7 @@ export default function Compras() {
           cantidad: compra.cantidad,
           total: compra.total,
           comision: compra.comision,
+          comisionMoneda: compra.comisionMoneda,
           fechaCompra: compra.fechaCompra,
           vendida: compra.vendida,
         }));
@@ -205,11 +209,10 @@ export default function Compras() {
     fetchCompras();
   };
 
-  // Función para actualizar precios manualmente
-  const handleActualizarPrecios = async () => {
-    await obtenerTodosPreciosActuales();
+   // Función para crear nueva compra
+   const handleNuevaCompra = () => {
+    navegador.push("/portfolio/compras/nueva-compra")
   };
-
 
   // Calcular estadísticas de filtrado
   const mostrarFiltros = fechaInicio || fechaFin || simboloSeleccionado;
@@ -225,11 +228,12 @@ export default function Compras() {
         <h1 className="text-2xl title-custom-foreground mb-2">
           Mis Operaciones
         </h1>
-        {/* <p className="text-gray-600 dark:text-gray-400 mb-6">
-          {compras.length > 0
-            ? `Total de operaciones: ${compras.length}`
-            : "No hay operaciones registradas"}
-        </p> */}
+        <Boton texto={
+              <span>
+                <IconoMas />
+                Nueva Compra
+              </span>
+            } onClick={handleNuevaCompra} />
 
         {/* Filtros */}
         <div className="mb-8 p-4 bg-custom-card border border-custom-card rounded-lg">

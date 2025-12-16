@@ -16,8 +16,7 @@
 .compras-table-container .rdt_TableCol:nth-child(1),
 .compras-table-container .rdt_TableCol:nth-child(2),
 .compras-table-container .rdt_TableCol:nth-child(3),
-.compras-table-container .rdt_TableCol:nth-child(10),
-.compras-table-container .rdt_TableCol:nth-child(11) {
+.compras-table-container .rdt_TableCol:nth-child(10) {
   justify-content: center !important;
   text-align: center !important;
 }
@@ -38,8 +37,7 @@
 .compras-table-container .rdt_TableCell:nth-child(1),
 .compras-table-container .rdt_TableCell:nth-child(2),
 .compras-table-container .rdt_TableCell:nth-child(3),
-.compras-table-container .rdt_TableCell:nth-child(10),
-.compras-table-container .rdt_TableCell:nth-child(11) {
+.compras-table-container .rdt_TableCell:nth-child(10) {
   justify-content: center !important;
   text-align: center !important;
 }

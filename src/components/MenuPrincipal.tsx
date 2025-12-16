@@ -207,6 +207,7 @@ export default function MenuPrincipal() {
               notif.id === id ? { ...notif, leida: true } : notif
             )
           );
+          navegador.push("/alertas");
         } else if (response.status === 401) {
           manejarTokenInvalido();
         } else {
@@ -216,7 +217,7 @@ export default function MenuPrincipal() {
         console.error("💥 Error marcando notificación como leída:", error);
       }
     },
-    [BACKEND_URL, obtenerHeaders, manejarTokenInvalido]
+    [BACKEND_URL, obtenerHeaders, manejarTokenInvalido,navegador]
   );
 
   /**
@@ -690,7 +691,10 @@ export default function MenuPrincipal() {
                               ? "bg-blue-50 dark:bg-blue-900/20"
                               : "hover:bg-custom-surface"
                           }`}
-                          onClick={() => marcarComoLeida(notificacion.id)}
+                          onClick={() => 
+                            marcarComoLeida(notificacion.id)
+                            
+                          }
                         >
                           <div className="flex items-start space-x-3">
                             <div className="flex-shrink-0 mt-1">

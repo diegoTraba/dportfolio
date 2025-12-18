@@ -112,8 +112,7 @@ export interface Venta {
   simbolo: string;
   precioCompra: number;
   precioVenta: number;
-  cantidad: number;
-  totalCompra: number;
+  cantidadVendida: number;
   totalVenta: number;
   beneficio: number;
   porcentajeBeneficio: number;
@@ -123,6 +122,11 @@ export interface Venta {
   // Si necesitas referencia a la compra original
   compraId?: number;
   idOrdenVenta?: string;
+  compra?: {
+    precio: number;
+    cantidad: number;
+    total: number;
+  }
 }
 
 export interface PrecioActual {

@@ -344,6 +344,13 @@ const TablaCompras = ({
                     No se encontraron operaciones
                   </div>
                 }
+                paginationComponentOptions={{
+                  rowsPerPageText: "Filas por página",
+                  rangeSeparatorText: "de",        // Para "1-10 de 100"
+                  noRowsPerPage: false,            // Si quieres ocultar el selector, true lo oculta
+                  selectAllRowsItem: false,
+                  selectAllRowsItemText: "Todos",  // Si activas selectAllRows
+                }}
               />
             </div>
           </>

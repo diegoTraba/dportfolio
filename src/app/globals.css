@@ -72,6 +72,15 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+@media (max-width: 1280px) {
+  .container {
+    width: 100%;
+    max-width: 100% !important; /* ⚡ Evita que Tailwind reduzca el max-width */
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
 /* Aplicar variables a clases utilitarias */
 .bg-custom-background {
   background-color: var(--background);

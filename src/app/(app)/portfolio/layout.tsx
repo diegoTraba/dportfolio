@@ -34,7 +34,7 @@ export default function DashboardLayout({
       </div>
       
       {/* Contenido principal */}
-      <div className="container mx-auto py-6 pt-20">
+      <div className="container mx-auto py-6 pt-16">
         {children}
       </div>
     </div>

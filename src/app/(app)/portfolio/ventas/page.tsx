@@ -171,7 +171,6 @@ export default function Ventas() {
         )}
 
         {/* Contenido principal */}
-        <div className="bg-card-bg rounded-lg border border-card-border p-4">
           {/* Estado de carga */}
           {cargando && (
             <div className="flex flex-col items-center justify-center py-12">
@@ -265,7 +264,6 @@ export default function Ventas() {
               </div>
             </>
           )}
-        </div>
 
         {/* Notas o información adicional */}
         <div className="mt-6 text-sm text-custom-foreground/60">

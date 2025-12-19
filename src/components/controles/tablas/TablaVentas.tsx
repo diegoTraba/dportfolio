@@ -1,8 +1,5 @@
 // components/tablas/TablaVentas.tsx
-import DataTable, {
-  TableColumn,
-  TableStyles,
-} from "react-data-table-component";
+import DataTable, { TableColumn, TableStyles } from "react-data-table-component";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Venta } from "@/interfaces/comun.types";
 import MobileCardsVentas from "./MobileCardsVentas";
@@ -17,319 +14,233 @@ interface TablaVentasProps {
 const TablaVentas = ({ ventas }: TablaVentasProps) => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Calcular las filas visibles en la página actual
-  const getVisibleRows = useCallback(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-    return ventas.slice(startIndex, endIndex);
-  }, [ventas, currentPage, rowsPerPage]);
-
-  // Calcular selectAll solo para las filas visibles
-  const visibleRows = getVisibleRows();
-  const allVisibleSelected =
-    visibleRows.length > 0 &&
-    visibleRows.every((row) => selectedRows.includes(row.id));
-
-  // Detectar tamaño de pantalla
+  /* -------------------- Responsive -------------------- */
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
+    const checkScreenSize = () => setIsMobile(window.innerWidth < 768);
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
-  // Forzar alineación de cabeceras (solo desktop)
-  useEffect(() => {
-    if (!isMobile) {
-      const forceHeaderAlignment = () => {
-        setTimeout(() => {
-          // Cabeceras de columna
-          const columnHeaders = document.querySelectorAll(
-            'div[role="columnheader"]'
-          );
-
-          columnHeaders.forEach((header, index) => {
-            const headerElement = header as HTMLElement;
-            headerElement.style.display = "flex";
-            headerElement.style.alignItems = "center";
-
-            // Columnas centradas (selección, exchange, símbolo)
-            if ([1, 2, 3].includes(index + 1)) {
-              headerElement.style.justifyContent = "center";
-              headerElement.style.textAlign = "center";
-            }
-            // Columnas derecha (resto)
-            else if ([4, 5, 6, 7, 8, 9, 10, 11].includes(index + 1)) {
-              headerElement.style.justifyContent = "flex-end";
-              headerElement.style.textAlign = "right";
-            }
-          });
-
-          // Celdas de contenido
-          const gridCells = document.querySelectorAll('div[role="gridcell"]');
-
-          gridCells.forEach((cell) => {
-            const cellElement = cell as HTMLElement;
-            const cellIndex =
-              Array.from(cell.parentElement?.children || []).indexOf(cell) + 1;
-
-            cellElement.style.display = "flex";
-            cellElement.style.alignItems = "center";
-
-            if ([1, 2, 3].includes(cellIndex)) {
-              cellElement.style.justifyContent = "center";
-              cellElement.style.textAlign = "center";
-            } else if ([4, 5, 6, 7, 8, 9, 10, 11].includes(cellIndex)) {
-              cellElement.style.justifyContent = "flex-end";
-              cellElement.style.textAlign = "right";
-            }
-          });
-        }, 100);
-      };
-
-      forceHeaderAlignment();
-      window.addEventListener("resize", forceHeaderAlignment);
-      return () => window.removeEventListener("resize", forceHeaderAlignment);
-    }
-  }, [isMobile, ventas, currentPage, rowsPerPage]);
-
-  // Handlers
+  /* -------------------- Selección -------------------- */
   const handleRowSelect = useCallback((id: number) => {
     setSelectedRows((prev) =>
       prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
     );
   }, []);
 
-  const handleSelectAllVisible = useCallback(() => {
-    const visibleRowIds = visibleRows.map((row) => row.id);
+  const handleSelectAll = useCallback(() => {
+    if (selectedRows.length === ventas.length) {
+      setSelectedRows([]);
+    } else {
+      setSelectedRows(ventas.map((v) => v.id));
+    }
+  }, [ventas, selectedRows]);
 
-    setSelectedRows((prev) =>
-      allVisibleSelected
-        ? prev.filter((id) => !visibleRowIds.includes(id))
-        : Array.from(new Set([...prev, ...visibleRowIds]))
-    );
-  }, [allVisibleSelected, visibleRows]);
-
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, []);
-
-  const handlePerRowsChange = useCallback(
-    (newPerPage: number, page: number) => {
-      setRowsPerPage(newPerPage);
-      setCurrentPage(page);
-    },
-    []
-  );
-
-  // Estilos de la tabla
+  /* -------------------- ESTILOS -------------------- */
   const customStyles: TableStyles = {
     table: {
       style: {
         width: "100%",
+        tableLayout: "auto",
       },
     },
     headRow: {
       style: {
         backgroundColor: "var(--header-bg)",
-        color: "var(--foreground)",
-        fontSize: "14px",
-        fontWeight: "bold",
-        minHeight: "52px",
         borderBottom: "2px solid var(--header-border)",
+        minHeight: "52px",
       },
     },
     headCells: {
       style: {
-        backgroundColor: "var(--header-bg)",
-        color: "var(--foreground)",
+        padding: "5px",
         fontSize: "14px",
-        fontWeight: "bold",
-        paddingLeft: "12px",
-        paddingRight: "12px",
-      },
-    },
-    cells: {
-      style: {
-        backgroundColor: "var(--card-bg)",
+        fontWeight: "600",
         color: "var(--foreground)",
-        fontSize: "14px",
-        paddingLeft: "12px",
-        paddingRight: "12px",
+        display: "flex",
+        alignItems: "center",
+        
       },
     },
     rows: {
       style: {
         backgroundColor: "var(--card-bg)",
-        color: "var(--foreground)",
         borderBottom: "1px solid var(--card-border)",
         "&:hover": {
-          backgroundColor: "var(--surface) !important",
+          backgroundColor: "var(--surface)",
         },
       },
       stripedStyle: {
         backgroundColor: "var(--surface)",
       },
     },
+    cells: {
+      style: {
+        padding: "5px",
+        fontSize: "14px",
+        color: "var(--foreground)",
+        display: "flex",
+        alignItems: "center",
+      },
+    },
     pagination: {
       style: {
         backgroundColor: "var(--card-bg)",
-        color: "var(--foreground)",
         borderTop: "1px solid var(--card-border)",
       },
     },
   };
 
-  // Columnas de la tabla
+  /* -------------------- COLUMNAS -------------------- */
   const columns: TableColumn<Venta>[] = useMemo(() => {
-    const baseColumnProps = {
-      style: {
-        paddingLeft: "10px",
-        paddingRight: "10px",
-      },
-      headerStyle: {
-        paddingLeft: "10px",
-        paddingRight: "10px",
-      },
-    };
-
     const baseColumns: TableColumn<Venta>[] = [
       {
         name: "Exchange",
-        selector: (row: Venta) => row.exchange,
+        selector: (row) => row.exchange,
         sortable: true,
-        width: "12%",
-        ...baseColumnProps,
-        style: { minWidth: "110px" },
+        grow: 0.9,
+        style: {
+          justifyContent: "center",
+          textAlign: "center",
+        },
       },
       {
         name: "Símbolo",
-        selector: (row: Venta) => row.simbolo,
+        selector: (row) => row.simbolo,
         sortable: true,
-        width: "10%",
-        ...baseColumnProps,
-        style: { minWidth: "100px" },
+        grow: 0.9,
+        style: {
+          justifyContent: "center",
+          textAlign: "center",
+        },
       },
       {
-        name: "Precio Compra",
-        selector: (row: Venta) => row.compra?.precio ?? row.compra?.precio ?? 0,
+        name: "P. Compra",
+        selector: (row) => row.compra?.precio ?? 0,
+        format: (row) => `$${row.compra?.precio.toFixed(2)}`,
         sortable: true,
-        format: (row: Venta) => `$${(row.compra?.precio.toFixed(2))}`,
-        width: "11%",
-        ...baseColumnProps,
-        style: { minWidth: "105px" },
+        grow: 1,
+        wrap: true,
+        style: {
+          justifyContent: "flex-end",
+          textAlign: "right",
+        },
       },
       {
-        name: "Precio Venta",
-        selector: (row: Venta) => row.precioVenta,
+        name: "P. Venta",
+        selector: (row) => row.precioVenta,
+        format: (row) => `$${row.precioVenta.toFixed(2)}`,
         sortable: true,
-        format: (row: Venta) => `$${row.precioVenta.toFixed(2)}`,
-        width: "11%",
-        ...baseColumnProps,
-        style: { minWidth: "105px" },
+        grow: 1,
+        wrap: true,
+        style: {
+          justifyContent: "flex-end",
+          textAlign: "right",
+        },
       },
       {
         name: "Cantidad",
-        selector: (row: Venta) => row.cantidadVendida,
+        selector: (row) => row.cantidadVendida,
+        format: (row) => row.cantidadVendida.toFixed(4),
         sortable: true,
-        format: (row: Venta) => row.cantidadVendida.toFixed(4),
-        width: "11%",
-        ...baseColumnProps,
-        style: { minWidth: "105px" },
+        grow: 1,
+        wrap: true,
+        style: {
+          justifyContent: "flex-end",
+          textAlign: "right",
+        },
       },
       {
-        name: "Total Compra",
-        selector: (row: Venta) => row.compra?.total ?? row.compra?.total ?? 0,
+        name: "Total",
+        selector: (row) => row.compra?.total ?? 0,
+        format: (row) => `$${row.compra?.total.toFixed(2)}`,
         sortable: true,
-        format: (row: Venta) => `$${row.compra?.total.toFixed(2)}`,
-        width: "11%",
-        ...baseColumnProps,
-        style: { minWidth: "105px" },
+        grow: 1,
+        wrap: true,
+        style: {
+          justifyContent: "flex-end",
+          textAlign: "right",
+        },
       },
       {
         name: "Beneficio",
-        cell: (row: Venta) => (
-          <BeneficioDisplay
-            beneficio={row.beneficio}
-            porcentajeBeneficio={row.porcentajeBeneficio}
-            tamaño="sm"
-          />
+        cell: (row) => (
+          <div className="w-full text-right">
+            <BeneficioDisplay
+              beneficio={row.beneficio}
+              porcentajeBeneficio={row.porcentajeBeneficio}
+              tamaño="sm"
+            />
+          </div>
         ),
         sortable: true,
-        sortFunction: (rowA: Venta, rowB: Venta) =>
-          rowA.beneficio - rowB.beneficio,
-        width: "10%",
-        ...baseColumnProps,
-        style: { minWidth: "100px" },
+        sortFunction: (a, b) => a.beneficio - b.beneficio,
+        grow: 0.9,
+        style: {
+          justifyContent: "flex-end",
+          textAlign: "right",
+        },
       },
       {
         name: "Comisión",
-        selector: (row: Venta) => row.comision || 0,
-        sortable: true,
-        format: (row: Venta) =>
+        selector: (row) => row.comision || 0,
+        format: (row) =>
           `${(row.comision || 0).toFixed(2)} ${row.comisionMoneda || ""}`,
-        width: "10%",
-        ...baseColumnProps,
-        style: { minWidth: "100px" },
+        sortable: true,
+        grow: 1,
+        wrap: true,
+        style: {
+          justifyContent: "flex-end",
+          textAlign: "right",
+        },
       },
       {
-        name: "Fecha Venta",
-        selector: (row: Venta) => row.fechaVenta,
+        name: "Fecha",
+        selector: (row) => row.fechaVenta,
+        format: (row) => formatDateSafe(row.fechaVenta),
         sortable: true,
-        format: (row: Venta) => formatDateSafe(row.fechaVenta),
-        width: "10%",
-        ...baseColumnProps,
-        style: { minWidth: "100px" },
+        grow: 1,
+        style: {
+          justifyContent: "flex-end",
+          textAlign: "right",
+        },
       },
     ];
 
-    // Añadir columna de selección solo en desktop
     if (!isMobile) {
       const selectionColumn: TableColumn<Venta> = {
         name: (
-          <div className="flex items-center justify-center w-full">
-            <input
-              type="checkbox"
-              checked={allVisibleSelected}
-              onChange={handleSelectAllVisible}
-              className="h-4 w-4 rounded border-gray-300 text-[var(--colorTerciario)] focus:ring-[var(--colorTerciario)]"
-            />
-          </div>
+          <input
+            type="checkbox"
+            checked={selectedRows.length === ventas.length && ventas.length > 0}
+            onChange={handleSelectAll}
+          />
         ),
-        cell: (row: Venta) => (
-          <div className="flex items-center justify-center w-full">
-            <input
-              type="checkbox"
-              checked={selectedRows.includes(row.id)}
-              onChange={() => handleRowSelect(row.id)}
-              className="h-4 w-4 rounded border-gray-300 text-[var(--colorTerciario)] focus:ring-[var(--colorTerciario)]"
-            />
-          </div>
+        cell: (row) => (
+          <input
+            type="checkbox"
+            checked={selectedRows.includes(row.id)}
+            onChange={() => handleRowSelect(row.id)}
+          />
         ),
-        sortable: false,
-        width: "4%",
-        ...baseColumnProps,
-        style: { minWidth: "50px" },
+        width: "40px",
+        style: {
+          justifyContent: "center",
+          textAlign: "center",
+        },
+        grow: 0,
       };
 
       return [selectionColumn, ...baseColumns];
     }
 
     return baseColumns;
-  }, [
-    isMobile,
-    allVisibleSelected,
-    selectedRows,
-    handleSelectAllVisible,
-    handleRowSelect,
-  ]);
+  }, [isMobile, ventas, selectedRows, handleSelectAll, handleRowSelect]);
 
+  /* -------------------- RENDER -------------------- */
   return (
     <div className="ventas-table-container">
       {isMobile ? (
@@ -338,13 +249,11 @@ const TablaVentas = ({ ventas }: TablaVentasProps) => {
         <>
           {selectedRows.length > 0 && (
             <div className="mb-4 p-3 bg-alerta-activa border border-alerta-activa rounded-lg">
-              <p className="text-sm text-custom-foreground">
-                {selectedRows.length} fila(s) seleccionada(s)
-              </p>
+              {selectedRows.length} fila(s) seleccionada(s)
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-lg border border-[var(--card-border)]">
+          <div className="datatable-wrapper">
             <DataTable
               columns={columns}
               data={ventas}
@@ -352,15 +261,22 @@ const TablaVentas = ({ ventas }: TablaVentasProps) => {
               pagination
               paginationPerPage={rowsPerPage}
               paginationRowsPerPageOptions={[10, 25, 50, 100]}
-              onChangePage={handlePageChange}
-              onChangeRowsPerPage={handlePerRowsChange}
+              onChangeRowsPerPage={(perPage) => setRowsPerPage(perPage)}
               highlightOnHover
               striped
+              fixedHeader
+              fixedHeaderScrollHeight="600px"
+              responsive={false}
               noDataComponent={
-                <div className="text-center py-8 text-custom-foreground opacity-70">
-                  No se encontraron ventas
-                </div>
+                <div className="py-8 opacity-70">No se encontraron ventas</div>
               }
+              paginationComponentOptions={{
+                rowsPerPageText: "Filas por página",
+                rangeSeparatorText: "de",        // Para "1-10 de 100"
+                noRowsPerPage: false,            // Si quieres ocultar el selector, true lo oculta
+                selectAllRowsItem: false,
+                selectAllRowsItemText: "Todos",  // Si activas selectAllRows
+              }}
             />
           </div>
         </>

@@ -17,6 +17,11 @@ const pestanias = [
     label: 'Ventas',
     path: '/portfolio/ventas',
   },
+  {
+    id: 'botS',
+    label: 'Bot señales',
+    path: '/portfolio/bots',
+  },
 ];
 
 export default function DashboardLayout({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUserId } from "@/hooks/useUserId";
 import Boton from "@/components/controles/Boton";
@@ -17,6 +17,7 @@ export default function NuevaCompra() {
 
   // Estados para los campos del formulario
   const [simbolo, setSimbolo] = useState("");
+  const [parSeleccionado, setParSeleccionado] = useState("USDC");
   const [tipoOrden, setTipoOrden] = useState("MARKET");
   const [cantidad, setCantidad] = useState("");
   const [precio, setPrecio] = useState("");
@@ -29,6 +30,9 @@ export default function NuevaCompra() {
     .NEXT_PUBLIC_CRIPTOMONEDAS_ALERTAS
     ? JSON.parse(process.env.NEXT_PUBLIC_CRIPTOMONEDAS_ALERTAS)
     : [];
+
+     // Definir pares disponibles
+  const paresDisponibles = ["USDC", "USDT", "TUSD"];
 
   // Tipos de orden disponibles
   const tiposOrden = [
@@ -46,6 +50,13 @@ export default function NuevaCompra() {
     type: "MARKET" | "LIMIT" | "STOP_LOSS" | "STOP_LOSS_LIMIT";
     price?: string;
   }
+
+  // Resetear cantidad cuando cambia el par seleccionado
+  useEffect(() => {
+    setCantidad("");
+    setPrecio("");
+  }, [parSeleccionado]);
+
   // Función para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +84,7 @@ export default function NuevaCompra() {
 
       // Construir el objeto de la orden con tipo específico
       const orderData: OrderData = {
-        symbol: simbolo+"USDC",
+        symbol: simbolo + parSeleccionado,
         quoteQuantity: cantidad,
         type: tipoOrden as "MARKET" | "LIMIT" | "STOP_LOSS" | "STOP_LOSS_LIMIT",
       };
@@ -110,8 +121,8 @@ export default function NuevaCompra() {
       const orderDetails = result.order || {};
       alert(
         `✅ Orden de compra creada exitosamente\n\n` +
-          `Símbolo: ${orderDetails.symbol || simbolo}\n` +
-          `Cantidad: ${orderDetails.origQty || cantidad}\n` +
+          `Símbolo: ${orderDetails.symbol || simbolo + parSeleccionado}\n` +
+          `Cantidad: ${orderDetails.origQty || cantidad} ${parSeleccionado}\n` +
           `ID de Orden: ${orderDetails.orderId || "N/A"}\n` +
           `Estado: ${orderDetails.status || "PENDIENTE"}`
       );
@@ -232,7 +243,29 @@ export default function NuevaCompra() {
                     ))}
                   </select>
                   <p className="mt-2 text-sm text-gray-500">
-                    Selecciona el par de trading (ej: BTCUSDT)
+                    Selecciona la criptomoneda principal (ej: BTC)
+                  </p>
+                </div>
+
+                {/* Campo Par */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-3 text-custom-foreground">
+                    Par de Trading <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={parSeleccionado}
+                    onChange={(e) => setParSeleccionado(e.target.value)}
+                    className="w-full px-4 py-3 bg-custom-surface border border-custom-border rounded-lg text-custom-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    {paresDisponibles.map((par) => (
+                      <option key={par} value={par}>
+                        {par}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Selecciona el par sobre el que se realizará la compra
                   </p>
                 </div>
 
@@ -275,11 +308,11 @@ export default function NuevaCompra() {
                         step="any"
                         min="0"
                         placeholder="0.00"
-                        className="w-full px-4 py-3 bg-custom-surface border border-custom-border rounded-lg text-custom-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-3 bg-custom-surface border border-custom-border rounded-lg text-custom-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-16"
                         required
                       />
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <span className="text-gray-500">USD</span>
+                        <span className="text-gray-500 font-medium">{parSeleccionado}</span>
                       </div>
                     </div>
                     <p className="mt-2 text-sm text-gray-500">
@@ -420,6 +453,11 @@ export default function NuevaCompra() {
                 </div>
 
                 <div className="flex justify-between items-center">
+                  <span className="text-custom-foreground">Par:</span>
+                  <span className="font-medium">{parSeleccionado}</span>
+                </div>
+
+                <div className="flex justify-between items-center">
                   <span className="text-custom-foreground">Tipo:</span>
                   <span className="font-medium">
                     {tipoOrden === "MARKET"
@@ -434,7 +472,7 @@ export default function NuevaCompra() {
                   <span className="text-custom-foreground">Cantidad:</span>
                   <span className="font-medium">
                     {cantidad
-                      ? `${parseFloat(cantidad).toLocaleString()} USD`
+                      ? `${parseFloat(cantidad).toLocaleString()} ${parSeleccionado}`
                       : "-"}
                   </span>
                 </div>
@@ -445,7 +483,7 @@ export default function NuevaCompra() {
                       Precio Límite:
                     </span>
                     <span className="font-medium">
-                      {parseFloat(precio).toLocaleString()} USD
+                      {parseFloat(precio).toLocaleString()} {parSeleccionado}
                     </span>
                   </div>
                 )}
@@ -458,7 +496,7 @@ export default function NuevaCompra() {
                           Total estimado:
                         </span>
                         <span className="text-lg font-bold text-green-600">
-                          {cantidad} USD
+                          {cantidad} {parSeleccionado}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">

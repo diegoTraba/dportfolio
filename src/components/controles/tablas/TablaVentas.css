@@ -7,12 +7,6 @@
     "Helvetica Neue", Arial, sans-serif;
 }
 
-/* .datatable-wrapper {
-  width: 100%;
-  overflow: auto;
-  border-radius: 12px;
-  border: 1px solid var(--card-border);
-} */
 .datatable-wrapper {
   width: 100%;
   border-radius: 12px;
@@ -51,14 +45,17 @@
   justify-content: flex-end;
   text-align: right;
 }
+
+/* pequeño margen en la ultima columna para que no quede muy pegado al final de la tabla */
+.rdt_TableCol[data-column-id="10"] {
+  margin-right: 8px;
+}
 /* Alineación correcta según data-table */
-/* .rdt_TableCol[data-align="center"], */
 .rdt_TableCell[data-column-align="center"] {
   justify-content: center;
   text-align: center;
 }
 
-/* .rdt_TableCol[data-align="right"], */
 .rdt_TableCell[data-column-align="right"] {
   justify-content: flex-end;
   text-align: right;

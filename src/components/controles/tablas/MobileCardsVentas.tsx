@@ -23,7 +23,7 @@ const MobileCardsVentas = ({ ventas }: MobileCardsVentasProps) => {
             </div>
             <div className="card-row">
               <span className="label">Precio Compra:</span>
-              <span className="value">${venta.compra?.precio.toFixed(2)}</span>
+              <span className="value">${venta.compras?.precio.toFixed(2)}</span>
             </div>
             <div className="card-row">
               <span className="label">Precio Venta:</span>
@@ -35,7 +35,7 @@ const MobileCardsVentas = ({ ventas }: MobileCardsVentasProps) => {
             </div>
             <div className="card-row">
               <span className="label">Total Compra:</span>
-              <span className="value">${venta.compra?.total.toFixed(2)}</span>
+              <span className="value">${venta.compras?.total.toFixed(2)}</span>
             </div>
             {/* <div className="card-row">
               <span className="label">Total Venta:</span>

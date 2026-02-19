@@ -38,6 +38,11 @@ const ModalVenta: React.FC<ModalVentaProps> = ({
   const [isTouched, setIsTouched] = useState(false);
   const [valorCorregido, setValorCorregido] = useState<number | null>(null);
 
+  // NUEVOS ESTADOS para comisiones
+  const [commissionRate, setCommissionRate] = useState<number>(0.001); // 0.1% por defecto
+  const [commissionAsset, setCommissionAsset] = useState<string>("USDC");
+  const [loadingCommission, setLoadingCommission] = useState(false);
+
   // Resetear estado cuando el modal se cierra
   const handleClose = () => {
     setCantidad("");
@@ -54,6 +59,7 @@ const ModalVenta: React.FC<ModalVentaProps> = ({
   useEffect(() => {
     if (isOpen && compra) {
       fetchSymbolInfo(compra.simbolo);
+      fetchCommissionRate(compra.simbolo);
     }
   }, [isOpen, compra]);
 
@@ -63,6 +69,42 @@ const ModalVenta: React.FC<ModalVentaProps> = ({
       calcularCantidadInicial();
     }
   }, [compra, stepSize]);
+
+  // Función para obtener la tasa de comisión
+  const fetchCommissionRate = async (symbol: string) => {
+    setLoadingCommission(true);
+    try {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+      const response = await fetch(
+        `${BACKEND_URL}/api/binance/user-commission-rate/${symbol}`
+      );
+      const result = await response.json();
+
+      if (result.success) {
+        // La tasa de comisión depende si es orden MARKET (taker) o LIMIT (maker)
+        const commissionRate = tipoOrden === "LIMIT" 
+          ? result.makerRate || result.commissionRate || 0.001
+          : result.takerRate || result.commissionRate || 0.001;
+        
+        setCommissionRate(commissionRate);
+        setCommissionAsset(result.commissionAsset || "USDC");
+      }
+    } catch (error) {
+      console.error("Error obteniendo tasa de comisión:", error);
+      // En caso de error, usar valores por defecto
+      setCommissionRate(0.001);
+      setCommissionAsset(symbol.includes("USDC") ? "USDC" : "USDT");
+    } finally {
+      setLoadingCommission(false);
+    }
+  };
+
+  // Actualizar comisión cuando cambie el tipo de orden
+  useEffect(() => {
+    if (compra) {
+      fetchCommissionRate(compra.simbolo);
+    }
+  }, [tipoOrden]);
 
   // Función para calcular la cantidad máxima válida inicial
   const calcularCantidadInicial = () => {
@@ -250,6 +292,37 @@ const ModalVenta: React.FC<ModalVentaProps> = ({
   const valorVentaEstimado = cantidadParaCalcular * precioActual;
   const esVentaParcial = cantidadParaCalcular < cantidadDisponible;
 
+  // Calcular comisión y ganancia total
+  const comisionMonto = valorVentaEstimado * commissionRate;
+  
+  // Calcular el costo proporcional de la compra original
+  // Si es venta total, usar el total completo, si es parcial, calcular proporción
+  let costoCompraProporcional = 0;
+  
+  if (compra.total !== undefined) {
+    // Si tenemos el campo total, calcular proporción
+    const proporcion = cantidadParaCalcular / compra.cantidad;
+    costoCompraProporcional = compra.total * proporcion;
+  } else {
+    // Si no tenemos el campo total, calcularlo a partir de precio y cantidad
+    costoCompraProporcional = cantidadParaCalcular * compra.precio;
+  }
+  
+  // Calcular ganancia/beneficio total (valor de venta - comisión - costo de compra)
+  const beneficioTotal = valorVentaEstimado - comisionMonto - compra.total;
+  
+  // Calcular porcentaje de ganancia
+  const porcentajeGanancia = costoCompraProporcional > 0 
+    ?  (beneficioTotal * 100) / valorVentaEstimado
+    : 0;
+
+  // Determinar asset de comisión basado en el símbolo
+  const determinarCommissionAsset = (symbol: string): string => {
+    if (symbol.includes("USDC")) return "USDC";
+    if (symbol.includes("USDT")) return "USDT";
+    return "USDC"; // Por defecto
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -308,6 +381,9 @@ const ModalVenta: React.FC<ModalVentaProps> = ({
     });
   };
 
+  // Obtener el símbolo base para mostrar
+  const baseAsset = compra.simbolo.replace("USDC", "").replace("USDT", "");
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="bg-[var(--card-bg)] rounded-lg shadow-xl w-full max-w-md mx-4 border border-[var(--card-border)]">
@@ -342,7 +418,7 @@ const ModalVenta: React.FC<ModalVentaProps> = ({
                 Disponible:
               </span>
               <span className="font-medium">
-                {cantidadDisponible.toFixed(8)} {compra.simbolo.replace("USDC", "").replace("USDT", "")}
+                {cantidadDisponible.toFixed(8)} {baseAsset}
               </span>
             </div>
             <div className="flex justify-between mb-2">
@@ -350,6 +426,12 @@ const ModalVenta: React.FC<ModalVentaProps> = ({
                 Precio compra:
               </span>
               <span className="font-medium">${compra.precio.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between mb-2">
+              <span className="text-sm text-[var(--foreground-secondary)]">
+                Costo compra:
+              </span>
+              <span className="font-medium">${compra.total?.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-[var(--foreground-secondary)]">
@@ -431,16 +513,44 @@ const ModalVenta: React.FC<ModalVentaProps> = ({
             )}
           </div>
 
-          {/* Valor estimado */}
-          <div className="p-3 bg-[var(--surface)] rounded-lg">
+          {/* Valor estimado, comisión y ganancia total */}
+          <div className="p-3 bg-[var(--surface)] rounded-lg space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-[var(--foreground-secondary)]">
                 Valor estimado:
               </span>
               <span className="font-medium">
-                ${valorVentaEstimado.toFixed(2)}
+                {valorVentaEstimado.toFixed(2)}
               </span>
             </div>
+            
+            <div className="flex justify-between pt-2 border-t border-[var(--card-border)]">
+              <span className="text-sm text-[var(--foreground-secondary)]">
+                Comisión ({(commissionRate * 100).toFixed(2)}%):
+              </span>
+              <span className="font-medium text-red-500">
+                -{comisionMonto.toFixed(2)} {determinarCommissionAsset(compra.simbolo)}
+              </span>
+            </div>
+            
+            <div className="flex justify-between pt-2 border-t border-[var(--card-border)]">
+              <span className="text-sm text-[var(--foreground-secondary)]">
+                Costo de compra:
+              </span>
+              <span className="font-medium text-amber-500">
+                -{compra.total?.toFixed(2)}
+              </span>
+            </div>
+            
+            <div className="flex justify-between pt-2 border-t border-[var(--card-border)]">
+              <span className="text-sm text-[var(--foreground-secondary)]">
+                Beneficio total:
+              </span>
+              <span className={`font-medium ${beneficioTotal >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {beneficioTotal.toFixed(2)} {beneficioTotal !== 0 && `(${porcentajeGanancia.toFixed(2)}%)`}
+              </span>
+            </div>
+            
             {cantidad && !validationError && (
               <div className="mt-2 text-xs text-green-500">
                 ✓ La orden será ejecutada correctamente en Binance
@@ -503,7 +613,7 @@ const ModalVenta: React.FC<ModalVentaProps> = ({
               value={quoteQuantity}
               onChange={(e) => setQuoteQuantity(e.target.value)}
               className="w-full p-2 border border-[var(--card-border)] rounded-lg bg-[var(--card-bg)] text-[var(--foreground)]"
-              placeholder="Ej: 1000 (USDC/USDT)"
+              placeholder={`Ej: 1000 (${determinarCommissionAsset(compra.simbolo)})`}
             />
             <div className="mt-1 text-xs text-[var(--foreground-secondary)] flex items-center gap-1">
               <IconoInfo className="w-3 h-3" />

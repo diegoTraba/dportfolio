@@ -122,7 +122,7 @@ export interface Venta {
   // Si necesitas referencia a la compra original
   compraId?: number;
   idOrdenVenta?: string;
-  compra?: {
+  compras?: {
     precio: number;
     cantidad: number;
     total: number;

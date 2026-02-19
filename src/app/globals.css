@@ -247,19 +247,6 @@ body {
   color: inherit !important;
 }
 
-/* Alinear columnas numéricas a la derecha */
-.rdt_Table .rdt_TableCell:nth-child(3),
-.rdt_Table .rdt_TableCell:nth-child(4),
-.rdt_Table .rdt_TableCell:nth-child(5) {
-  text-align: right !important;
-}
-
-.rdt_Table .rdt_TableCol:nth-child(3),
-.rdt_Table .rdt_TableCol:nth-child(4),
-.rdt_Table .rdt_TableCol:nth-child(5) {
-  text-align: right !important;
-}
-
 /* Estilos para las tarjetas móviles */
 .mobile-cards-container {
   display: flex;

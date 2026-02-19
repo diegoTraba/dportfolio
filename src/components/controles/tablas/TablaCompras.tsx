@@ -202,7 +202,7 @@ const TablaCompras = ({
     { name: "Exchange", selector: (row) => row.exchange, sortable: true, width: "12%", ...baseColumnProps, style: { minWidth: "110px" } },
     { name: "Símbolo", selector: (row) => row.simbolo, sortable: true, width: "10%", ...baseColumnProps, style: { minWidth: "100px" } },
     { name: "Precio", selector: (row) => row.precio, sortable: true, format: (row) => `$${row.precio.toFixed(2)}`, width: "11%", ...baseColumnProps, style: { minWidth: "105px" } },
-    { name: "Cantidad", selector: (row) => row.cantidad, sortable: true, format: (row) => row.cantidad.toFixed(4), width: "11%", ...baseColumnProps, style: { minWidth: "105px" } },
+    { name: "Cantidad", selector: (row) => row.cantidad, sortable: true, format: (row) => row.cantidad.toFixed(5), width: "11%", ...baseColumnProps, style: { minWidth: "105px" } },
     { name: "Total", selector: (row) => row.total, sortable: true, format: (row) => `$${row.total.toFixed(2)}`, width: "11%", ...baseColumnProps, style: { minWidth: "105px" } },
     { 
       name: "Cambio", 
@@ -227,7 +227,7 @@ const TablaCompras = ({
       name: "Comisión", 
       selector: (row) => row.comision || 0, 
       sortable: true, 
-      format: (row) => `${(row.comision || 0).toFixed(2)} ${row.comisionMoneda || ""}`, 
+      format: (row) => `${(row.comision || 0).toFixed(6)} ${row.comisionMoneda || ""}`, 
       width: "10%", 
       ...baseColumnProps, 
       style: { minWidth: "100px" } 

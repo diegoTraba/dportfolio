@@ -119,8 +119,8 @@ const TablaVentas = ({ ventas }: TablaVentasProps) => {
       },
       {
         name: "P. Compra",
-        selector: (row) => row.compra?.precio ?? 0,
-        format: (row) => `$${row.compra?.precio.toFixed(2)}`,
+        selector: (row) => row.compras?.precio ?? 0,
+        format: (row) => `$${row.compras?.precio.toFixed(2)}`,
         sortable: true,
         grow: 1,
         wrap: true,
@@ -155,8 +155,8 @@ const TablaVentas = ({ ventas }: TablaVentasProps) => {
       },
       {
         name: "Total",
-        selector: (row) => row.compra?.total ?? 0,
-        format: (row) => `$${row.compra?.total.toFixed(2)}`,
+        selector: (row) => row.compras?.total ?? 0,
+        format: (row) => `$${row.compras?.total.toFixed(2)}`,
         sortable: true,
         grow: 1,
         wrap: true,
@@ -206,6 +206,7 @@ const TablaVentas = ({ ventas }: TablaVentasProps) => {
         style: {
           justifyContent: "flex-end",
           textAlign: "right",
+          marginRight: "8px"
         },
       },
     ];

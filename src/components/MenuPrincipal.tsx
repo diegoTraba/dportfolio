@@ -174,6 +174,7 @@ export default function MenuPrincipal() {
 
       if (response.ok) {
         const data: Notificacion[] = await response.json();
+        console.log('IDs de notificaciones:', notificaciones.map(n => n.id))
         setNotificaciones(data);
         console.log(`✅ ${data.length} notificaciones cargadas`);
       } else if (response.status === 401) {

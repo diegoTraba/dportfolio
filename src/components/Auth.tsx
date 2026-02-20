@@ -73,7 +73,7 @@ export default function Auth() {
           body: JSON.stringify({
             ultimoAcceso: ultimoAcceso,
             userId: userId,
-            intervaloMs: 300000, // 5 minutos
+            intervaloMs: 900000, // 15 minutos
           }),
         }
       );

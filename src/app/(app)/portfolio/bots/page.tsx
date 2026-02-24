@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useUserId } from "@/hooks/useUserId";
 import Boton from "@/components/controles/Boton";
-import { IconoPlay, IconoStop } from "@/components/controles/Iconos";
+import { IconoPlay, IconoStop, IconoRefrescar } from "@/components/controles/Iconos";
 
 const SIMBOLOS_SOPORTADOS = [
   "BTCUSDC",
@@ -25,6 +25,19 @@ interface BotConfig {
   simbolos?: string[];   // Añadimos símbolos a la configuración
   limit?: number;
   cooldownMinutes?: number;
+  fechaActivacion?: string;
+}
+
+interface EstadisticasBot {
+  compras: number;
+  ventas: number;
+  totalOperaciones: number;
+  operacionesPendientes: number;
+  operacionesEmparejadas: number;
+  operacionesUltimas24h: number;
+  emparejadasUltimas24h: number;
+  beneficio24h: number;
+  beneficioTotal: number;
 }
 
 export default function BotPage() {
@@ -44,6 +57,20 @@ export default function BotPage() {
   const [configMonto, setConfigMonto] = useState<number>(10);
   const [configIntervalos, setConfigIntervalos] = useState<string[]>([]);
   const [configSimbolos, setConfigSimbolos] = useState<string[]>([]);
+
+  // Estadísticas del bot
+  const [estadisticas, setEstadisticas] = useState<EstadisticasBot>({
+    compras: 0,
+    ventas: 0,
+    totalOperaciones: 0,
+    operacionesPendientes: 0,
+    operacionesEmparejadas: 0,
+    operacionesUltimas24h: 0,
+    emparejadasUltimas24h: 0,
+    beneficio24h: 0,
+    beneficioTotal: 0
+  });
+  const [cargandoEstadisticas, setCargandoEstadisticas] = useState<boolean>(false);
 
   const [cargando, setCargando] = useState<boolean>(false);
   const [cargandoEstado, setCargandoEstado] = useState<boolean>(true);
@@ -88,6 +115,54 @@ export default function BotPage() {
     };
     fetchEstadoBot();
   }, [userId, BACKEND_URL]);
+
+  // Cargar estadísticas cuando el bot esté iniciado
+  useEffect(() => {
+    if (iniciado && userId) {
+      cargarEstadisticas();
+    } else {
+      // Resetear estadísticas si se detiene
+      setEstadisticas({
+        compras: 0,
+        ventas: 0,
+        totalOperaciones: 0,
+        operacionesPendientes: 0,
+        operacionesEmparejadas: 0,
+        operacionesUltimas24h: 0,
+        emparejadasUltimas24h: 0,
+        beneficio24h: 0,
+        beneficioTotal: 0
+      });
+    }
+  }, [iniciado, userId]);
+
+  const cargarEstadisticas = async () => {
+    if (!userId) return;
+    setCargandoEstadisticas(true);
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/atecnico/bot/operaciones/${userId}`);
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}`);
+      }
+      const data = await response.json();
+      setEstadisticas({
+        compras: data.compras || 0,
+        ventas: data.ventas || 0,
+        totalOperaciones: data.totalOperaciones || 0,
+        operacionesPendientes: data.operacionesPendientes || 0,
+        operacionesEmparejadas: data.operacionesEmparejadas || 0,
+        operacionesUltimas24h: data.operacionesUltimas24h || 0,
+        emparejadasUltimas24h: data.emparejadasUltimas24h || 0,
+        beneficio24h: data.beneficio24h || 0,
+        beneficioTotal: data.beneficioTotal || 0
+      });
+    } catch (error) {
+      console.error("Error al cargar estadísticas del bot:", error);
+      setMensaje("❌ Error al cargar estadísticas");
+    } finally {
+      setCargandoEstadisticas(false);
+    }
+  };
 
   const isValid = useMemo(() => {
     return (
@@ -368,38 +443,70 @@ export default function BotPage() {
               <h2 className="text-xl font-semibold text-custom-foreground">
                 Bot en ejecución
               </h2>
-              <Boton
-                texto={
-                  <div className="flex items-center space-x-2">
-                    {cargando ? (
-                      <span>Cargando...</span>
-                    ) : (
-                      <>
-                        <IconoStop />
-                        <span>Detener Bot</span>
-                      </>
-                    )}
-                  </div>
-                }
-                onClick={handleDetenerBot}
-                disabled={cargando}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              />
+              <div className="flex gap-2">
+                <Boton
+                  texto={
+                    <div className="flex items-center space-x-2">
+                      {cargandoEstadisticas ? (
+                        <span className="animate-spin">⟳</span>
+                      ) : (
+                        <IconoRefrescar />
+                      )}
+                      <span>Refrescar</span>
+                    </div>
+                  }
+                  onClick={cargarEstadisticas}
+                  disabled={cargandoEstadisticas}
+                />
+                <Boton
+                  texto={
+                    <div className="flex items-center space-x-2">
+                      {cargando ? (
+                        <span>Cargando...</span>
+                      ) : (
+                        <>
+                          <IconoStop />
+                          <span>Detener Bot</span>
+                        </>
+                      )}
+                    </div>
+                  }
+                  onClick={handleDetenerBot}
+                  disabled={cargando}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                />
+              </div>
             </div>
 
             {/* Tarjetas de estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">Órdenes 24h</div>
-                <div className="text-2xl font-bold text-custom-foreground">0</div>
+                <div className="text-sm text-custom-foreground/70 mb-1">Total operaciones</div>
+                <div className="text-2xl font-bold text-custom-foreground">{estadisticas.totalOperaciones}</div>
+              </div>
+              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
+                <div className="text-sm text-custom-foreground/70 mb-1">Operaciones emparejadas</div>
+                <div className="text-2xl font-bold text-custom-foreground">{estadisticas.operacionesEmparejadas}</div>
+              </div>
+              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
+                <div className="text-sm text-custom-foreground/70 mb-1">Operaciones 24h</div>
+                <div className="text-2xl font-bold text-custom-foreground">{estadisticas.operacionesUltimas24h}</div>
+              </div>
+              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
+                <div className="text-sm text-custom-foreground/70 mb-1">Operaciones emparejadas 24h</div>
+                <div className="text-2xl font-bold text-custom-foreground">{estadisticas.emparejadasUltimas24h}</div>
+              </div>
+              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
+                <div className="text-sm text-custom-foreground/70 mb-1">Beneficio total</div>
+                <div className="text-2xl font-bold text-green-500">{estadisticas.beneficioTotal}</div>
               </div>
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
                 <div className="text-sm text-custom-foreground/70 mb-1">Beneficio 24h</div>
-                <div className="text-2xl font-bold text-green-500">$0.00</div>
+                <div className="text-2xl font-bold text-green-500">{estadisticas.beneficio24h}</div>
               </div>
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
                 <div className="text-sm text-custom-foreground/70 mb-1">Operaciones pendientes</div>
-                <div className="text-2xl font-bold text-amber-500">0</div>
+                <div className="text-2xl font-bold text-amber-500">{estadisticas.operacionesPendientes}</div>
               </div>
             </div>
 

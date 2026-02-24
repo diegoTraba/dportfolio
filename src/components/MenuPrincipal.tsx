@@ -160,7 +160,6 @@ export default function MenuPrincipal() {
    */
   const cargarNotificaciones = useCallback(async () => {
     try {
-      // Si no hay usuario autenticado, no cargar notificaciones
       if (!estaAutenticado()) {
         console.log(
           "⚠️ Usuario no autenticado, omitiendo carga de notificaciones"
@@ -174,8 +173,18 @@ export default function MenuPrincipal() {
 
       if (response.ok) {
         const data: Notificacion[] = await response.json();
-        console.log('IDs de notificaciones:', notificaciones.map(n => n.id))
-        setNotificaciones(data);
+        setNotificaciones((prev) => {
+          // Conservar solo las previas no leídas
+          const prevNoLeidas = prev.filter((n) => !n.leida);
+          const map = new Map(prevNoLeidas.map((n) => [n.id, n]));
+          data.forEach((n) => map.set(n.id, n));
+          const resultado = Array.from(map.values());
+          console.log(
+            "IDs de notificaciones tras merge:",
+            resultado.map((n) => n.id)
+          );
+          return resultado;
+        });
         console.log(`✅ ${data.length} notificaciones cargadas`);
       } else if (response.status === 401) {
         console.error("❌ No autorizado - token inválido o expirado");
@@ -192,33 +201,38 @@ export default function MenuPrincipal() {
    * Marcar una notificación como leída
    */
   const marcarComoLeida = useCallback(
-    async (id: number) => {
-      try {
-        const response = await fetch(
-          `${BACKEND_URL}/api/notificaciones/${id}/leida`,
-          {
-            method: "PATCH",
-            headers: obtenerHeaders(),
-          }
+    async (id: number | string) => {
+      if (typeof id === "string" && id.startsWith("temp_")) {
+        // Notificación temporal: solo marcarla como leída localmente
+        setNotificaciones((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, leida: true } : n))
         );
-
-        if (response.ok) {
-          setNotificaciones((prev) =>
-            prev.map((notif) =>
-              notif.id === id ? { ...notif, leida: true } : notif
-            )
+      } else {
+        // Notificación de BD: llamar al backend
+        try {
+          const response = await fetch(
+            `${BACKEND_URL}/api/notificaciones/${id}/leida`,
+            {
+              method: "PATCH",
+              headers: obtenerHeaders(),
+            }
           );
-          navegador.push("/alertas");
-        } else if (response.status === 401) {
-          manejarTokenInvalido();
-        } else {
-          console.error("❌ Error marcando notificación como leída");
+          if (response.ok) {
+            setNotificaciones((prev) =>
+              prev.map((n) => (n.id === id ? { ...n, leida: true } : n))
+            );
+            navegador.push("/alertas");
+          } else if (response.status === 401) {
+            manejarTokenInvalido();
+          } else {
+            console.error("❌ Error marcando notificación como leída");
+          }
+        } catch (error) {
+          console.error("💥 Error marcando notificación como leída:", error);
         }
-      } catch (error) {
-        console.error("💥 Error marcando notificación como leída:", error);
       }
     },
-    [BACKEND_URL, obtenerHeaders, manejarTokenInvalido,navegador]
+    [BACKEND_URL, obtenerHeaders, manejarTokenInvalido, navegador]
   );
 
   /**
@@ -259,6 +273,7 @@ export default function MenuPrincipal() {
       case "alerta":
         return <IconoAlerta className="text-red-500" />;
       case "sistema":
+      case "bot_ejecutado": // Añadimos este caso
         return <IconoSistema className="text-blue-500" />;
       default:
         return <IconoDefecto className="text-gray-500" />;
@@ -386,33 +401,61 @@ export default function MenuPrincipal() {
 
         switch (msg.tipo) {
           case "nueva_notificacion": {
-            const datos = msg.datos as {
-              id: number;
-              criptomoneda: string;
-              precio_objetivo: number;
-              precio_actual: number;
-              condicion: string;
-            };
+            const datos = msg.datos;
+            if (!datos) return; // si es undefined, salir
 
-            const nueva: Notificacion = {
-              id: datos.id,
-              tipo: "alerta",
-              titulo: `Alerta de ${datos.criptomoneda}`,
-              mensaje: `${datos.criptomoneda} ha ${datos.condicion} $${datos.precio_objetivo}. Precio actual: $${datos.precio_actual}`,
-              fecha: new Date().toISOString(),
-              leida: false,
-              datos_adicionales: datos,
-            };
-
-            setNotificaciones((prev) => [nueva, ...prev]);
-            if (!notificacionesAbierto) {
-              mostrarNotificacionSistema(nueva);
+            // Si es un objeto simple (no array) y tiene la propiedad 'criptomoneda', es una alerta antigua
+            if (
+              typeof datos === "object" &&
+              !Array.isArray(datos) &&
+              "criptomoneda" in datos
+            ) {
+              // es alerta
+              const alerta = datos as {
+                id: number;
+                criptomoneda: string;
+                precio_objetivo: number;
+                precio_actual: number;
+                condicion: string;
+              };
+              const nueva: Notificacion = {
+                id: alerta.id,
+                tipo: "alerta",
+                titulo: `Alerta de ${alerta.criptomoneda}`,
+                mensaje: `${alerta.criptomoneda} ha ${alerta.condicion} $${alerta.precio_objetivo}. Precio actual: $${alerta.precio_actual}`,
+                fecha: new Date().toISOString(),
+                leida: false,
+                datos_adicionales: alerta,
+              };
+              setNotificaciones((prev) => [nueva, ...prev]);
+              if (!notificacionesAbierto) {
+                mostrarNotificacionSistema(nueva);
+              }
+            }
+            // Si es un objeto y tiene las propiedades de Notificacion (por ejemplo, 'titulo'), asumimos que es una notificación ya formateada
+            else if (
+              typeof datos === "object" &&
+              !Array.isArray(datos) &&
+              "titulo" in datos &&
+              "mensaje" in datos
+            ) {
+              const notificacion = datos as Notificacion; // aquí ya confiamos que tiene la forma
+              setNotificaciones((prev) => [notificacion, ...prev]);
+              if (!notificacionesAbierto) {
+                mostrarNotificacionSistema(notificacion);
+              }
             }
             break;
           }
 
           case "notificaciones_actualizadas":
-            setNotificaciones(msg.datos as Notificacion[]);
+            const nuevas = msg.datos as Notificacion[];
+            setNotificaciones((prev) => {
+              const prevNoLeidas = prev.filter((n) => !n.leida);
+              const map = new Map(prevNoLeidas.map((n) => [n.id, n]));
+              nuevas.forEach((n) => map.set(n.id, n));
+              return Array.from(map.values());
+            });
             break;
 
           case "error_autenticacion":
@@ -572,7 +615,7 @@ export default function MenuPrincipal() {
     "block py-4 px-4 text-xl font-medium transition-colors rounded-lg mb-2"; // Quitado border-b, añadido mb-2
   const estiloActivoMovil = "bg-[var(--colorTerciario)] text-white";
   // const estiloInactivoMovil =
-    // "text-custom-foreground bg-custom-card hover:bg-[var(--colorTerciario)] hover:text-white dark:bg-custom-card dark:hover:bg-[var(--colorTerciario)] dark:hover:text-white";
+  // "text-custom-foreground bg-custom-card hover:bg-[var(--colorTerciario)] hover:text-white dark:bg-custom-card dark:hover:bg-[var(--colorTerciario)] dark:hover:text-white";
 
   // Cerrar menú cuando cambia la ruta actual (sin useEffect)
   if (rutaActual !== rutaAnterior) {
@@ -692,10 +735,7 @@ export default function MenuPrincipal() {
                               ? "bg-blue-50 dark:bg-blue-900/20"
                               : "hover:bg-custom-surface"
                           }`}
-                          onClick={() => 
-                            marcarComoLeida(notificacion.id)
-                            
-                          }
+                          onClick={() => marcarComoLeida(notificacion.id)}
                         >
                           <div className="flex items-start space-x-3">
                             <div className="flex-shrink-0 mt-1">
@@ -950,9 +990,7 @@ export default function MenuPrincipal() {
               <Link
                 href="/portfolio"
                 className={`menu-link-mobile ${
-                  estaActiva("/portfolio")
-                    ? "active"
-                    : ""
+                  estaActiva("/portfolio") ? "active" : ""
                 }`}
                 onClick={() => setMenuAbierto(false)}
               >
@@ -965,9 +1003,7 @@ export default function MenuPrincipal() {
               <Link
                 href="/alertas"
                 className={`menu-link-mobile ${
-                  estaActiva("/alertas")
-                    ? "active"
-                    : ""
+                  estaActiva("/alertas") ? "active" : ""
                 }`}
                 onClick={() => setMenuAbierto(false)}
               >
@@ -980,9 +1016,7 @@ export default function MenuPrincipal() {
               <Link
                 href="/configuracion"
                 className={`menu-link-mobile ${
-                  estaActiva("/configuracion")
-                    ? "active"
-                    : ""
+                  estaActiva("/configuracion") ? "active" : ""
                 }`}
                 onClick={() => setMenuAbierto(false)}
               >

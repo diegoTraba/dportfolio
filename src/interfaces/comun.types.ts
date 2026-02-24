@@ -25,17 +25,17 @@ export interface TarjetaAlertaProps {
 
 // Tipos para las notificaciones
 export interface Notificacion {
-  id: number;
+  id: string | number;
   tipo: string;
   titulo: string;
   mensaje: string;
   fecha: string;
   leida: boolean;
   datos_adicionales?: {
-    criptomoneda: string;
-    precio_objetivo: number;
-    precio_actual: number;
-    condicion: string;
+    criptomoneda?: string;
+    precio_objetivo?: number;
+    precio_actual?: number;
+    condicion?: string;
   };
 }
 
@@ -44,7 +44,8 @@ export interface WSMessage {
     | "nueva_notificacion"
     | "notificaciones_actualizadas"
     | "ping"
-    | "error_autenticacion";
+    | "error_autenticacion"
+    | "bot_ejecutado";
   datos:
     | {
         id: number;

@@ -120,7 +120,7 @@ const TablaVentas = ({ ventas }: TablaVentasProps) => {
       {
         name: "P. Compra",
         selector: (row) => row.compras?.precio ?? 0,
-        format: (row) => `$${row.compras?.precio.toFixed(2)}`,
+        format: (row) => `$${row.compras?.precio.toFixed(3)}`,
         sortable: true,
         grow: 1,
         wrap: true,
@@ -132,7 +132,7 @@ const TablaVentas = ({ ventas }: TablaVentasProps) => {
       {
         name: "P. Venta",
         selector: (row) => row.precioVenta,
-        format: (row) => `$${row.precioVenta.toFixed(2)}`,
+        format: (row) => `$${row.precioVenta.toFixed(3)}`,
         sortable: true,
         grow: 1,
         wrap: true,
@@ -200,7 +200,7 @@ const TablaVentas = ({ ventas }: TablaVentasProps) => {
       {
         name: "Fecha",
         selector: (row) => row.fechaVenta,
-        format: (row) => formatDateSafe(row.fechaVenta),
+        format: (row) => formatDateSafe(row.fechaVenta, true),
         sortable: true,
         grow: 1,
         style: {

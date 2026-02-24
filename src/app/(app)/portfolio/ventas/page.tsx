@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUserId } from "@/hooks/useUserId";
 import Boton from "@/components/controles/Boton";
 import TablaVentas from "@/components/controles/tablas/TablaVentas";
 import { Venta } from "@/interfaces/comun.types";
-import { IconoRefrescar, IconoDolar } from "@/components/controles/Iconos";
+import { IconoRefrescar, IconoDolar, IconoBuscar } from "@/components/controles/Iconos";
 
 export default function Ventas() {
   const userId = useUserId();
@@ -17,6 +17,18 @@ export default function Ventas() {
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [recargar, setRecargar] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  // Filtrar ventas según el término de búsqueda (por símbolo o exchange)
+  const filteredVentas = useMemo(() => {
+    if (!searchTerm.trim()) return ventas;
+    const term = searchTerm.toLowerCase().trim();
+    return ventas.filter(
+      (venta) =>
+        venta.simbolo?.toLowerCase().includes(term) ||
+        venta.exchange?.toLowerCase().includes(term)
+    );
+  }, [ventas, searchTerm]);
 
   // Función para cargar las ventas desde el backend
   const cargarVentas = useCallback(async () => {
@@ -86,7 +98,12 @@ export default function Ventas() {
     setRecargar(true);
   };
 
-  // Calcular estadísticas
+  // Limpiar búsqueda
+  const limpiarBusqueda = () => {
+    setSearchTerm("");
+  };
+
+  // Calcular estadísticas (basadas en ventas totales, no filtradas)
   const calcularEstadisticas = () => {
     if (ventas.length === 0) {
       return {
@@ -138,7 +155,28 @@ export default function Ventas() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            {/* Caja de búsqueda */}
+            <div className="relative flex-grow md:flex-grow-0">
+              <input
+                type="text"
+                placeholder="Buscar por símbolo o exchange..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full md:w-64 px-4 py-2 pl-10 rounded-lg border border-card-border bg-surface text-custom-foreground focus:outline-none focus:ring-2 focus:ring-[var(--colorTerciario)] transition-shadow"
+              />
+              <IconoBuscar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-custom-foreground/50 w-4 h-4" />
+              {searchTerm && (
+                <button
+                  onClick={limpiarBusqueda}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-custom-foreground/50 hover:text-custom-foreground/80"
+                  aria-label="Limpiar búsqueda"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+
             <Boton
               texto={
                 <div className="flex items-center space-x-2">
@@ -151,7 +189,7 @@ export default function Ventas() {
           </div>
         </div>
 
-        {/* Panel de estadísticas */}
+        {/* Panel de estadísticas (igual que antes) */}
         {ventas.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-surface rounded-lg p-4 border border-card-border">
@@ -267,12 +305,19 @@ export default function Ventas() {
           </div>
         )}
 
-        {/* Mostrar tabla de ventas */}
+        {/* Mostrar tabla de ventas (filtradas) */}
         {!cargando && !error && userId && ventas.length > 0 && (
           <>
-            <div className="mb-4 flex justify-between items-center">
+            <div className="mb-4 flex flex-wrap justify-between items-center gap-2">
               <div className="text-sm text-custom-foreground/70">
-                Mostrando {ventas.length} venta{ventas.length !== 1 ? "s" : ""}
+                {searchTerm ? (
+                  <>
+                    Mostrando {filteredVentas.length} de {ventas.length} venta
+                    {ventas.length !== 1 ? "s" : ""}
+                  </>
+                ) : (
+                  <>Mostrando {ventas.length} venta{ventas.length !== 1 ? "s" : ""}</>
+                )}
               </div>
 
               <div className="text-sm text-custom-foreground/70">
@@ -284,9 +329,23 @@ export default function Ventas() {
               </div>
             </div>
 
-            <TablaVentas ventas={ventas} />
+            {filteredVentas.length === 0 ? (
+              <div className="text-center py-8 bg-surface/50 rounded-lg border border-card-border">
+                <p className="text-custom-foreground/70">
+                  No se encontraron ventas para ${searchTerm}
+                </p>
+                <button
+                  onClick={limpiarBusqueda}
+                  className="mt-2 text-[var(--colorTerciario)] hover:underline"
+                >
+                  Limpiar búsqueda
+                </button>
+              </div>
+            ) : (
+              <TablaVentas ventas={filteredVentas} />
+            )}
 
-            {/* Resumen final */}
+            {/* Resumen final (con estadísticas totales) */}
             <div className="mt-6 pt-4 border-t border-card-border">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="text-sm text-custom-foreground/70">

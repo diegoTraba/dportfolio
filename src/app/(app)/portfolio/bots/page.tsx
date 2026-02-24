@@ -3,7 +3,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { useUserId } from "@/hooks/useUserId";
 import Boton from "@/components/controles/Boton";
-import { IconoPlay, IconoStop, IconoRefrescar } from "@/components/controles/Iconos";
+import {
+  IconoPlay,
+  IconoStop,
+  IconoRefrescar,
+} from "@/components/controles/Iconos";
 
 const SIMBOLOS_SOPORTADOS = [
   "BTCUSDC",
@@ -22,7 +26,7 @@ const OPCIONES_INTERVALOS = ["1m", "3m", "5m", "15m"];
 interface BotConfig {
   tradeAmountUSD?: number;
   intervals?: string[];
-  simbolos?: string[];   // Añadimos símbolos a la configuración
+  simbolos?: string[]; // Añadimos símbolos a la configuración
   limit?: number;
   cooldownMinutes?: number;
   fechaActivacion?: string;
@@ -45,16 +49,23 @@ export default function BotPage() {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   // Estados de UI
-  const [botActivo, setBotActivo] = useState<boolean>(false);       // switch ON/OFF
-  const [iniciado, setIniciado] = useState<boolean>(false);        // bot realmente ejecutándose
+  const [botActivo, setBotActivo] = useState<boolean>(false); // switch ON/OFF
+  const [iniciado, setIniciado] = useState<boolean>(false); // bot realmente ejecutándose
 
   // Configuración actual (para el formulario)
   const [monto, setMonto] = useState<number>(10);
-  const [intervalosSeleccionados, setIntervalosSeleccionados] = useState<string[]>([]);
-  const [simbolosSeleccionados, setSimbolosSeleccionados] = useState<string[]>([]);
+  const [maximoInvertible, setMaximoInvertible] = useState<number>(100); // Maximo dinero a invertir por el bot
+  const [intervalosSeleccionados, setIntervalosSeleccionados] = useState<
+    string[]
+  >([]);
+  const [simbolosSeleccionados, setSimbolosSeleccionados] = useState<string[]>(
+    []
+  );
 
   // Configuración guardada (para mostrar en estadísticas)
   const [configMonto, setConfigMonto] = useState<number>(10);
+  const [configMaximoInvertible, setConfigMaximoInvertible] =
+    useState<number>(100); // NUEVO
   const [configIntervalos, setConfigIntervalos] = useState<string[]>([]);
   const [configSimbolos, setConfigSimbolos] = useState<string[]>([]);
 
@@ -68,9 +79,10 @@ export default function BotPage() {
     operacionesUltimas24h: 0,
     emparejadasUltimas24h: 0,
     beneficio24h: 0,
-    beneficioTotal: 0
+    beneficioTotal: 0,
   });
-  const [cargandoEstadisticas, setCargandoEstadisticas] = useState<boolean>(false);
+  const [cargandoEstadisticas, setCargandoEstadisticas] =
+    useState<boolean>(false);
 
   const [cargando, setCargando] = useState<boolean>(false);
   const [cargandoEstado, setCargandoEstado] = useState<boolean>(true);
@@ -84,7 +96,9 @@ export default function BotPage() {
         return;
       }
       try {
-        const response = await fetch(`${BACKEND_URL}/api/atecnico/bot/estado/${userId}`);
+        const response = await fetch(
+          `${BACKEND_URL}/api/atecnico/bot/estado/${userId}`
+        );
         if (!response.ok) {
           throw new Error(`Error ${response.status}`);
         }
@@ -131,7 +145,7 @@ export default function BotPage() {
         operacionesUltimas24h: 0,
         emparejadasUltimas24h: 0,
         beneficio24h: 0,
-        beneficioTotal: 0
+        beneficioTotal: 0,
       });
     }
   }, [iniciado, userId]);
@@ -140,7 +154,9 @@ export default function BotPage() {
     if (!userId) return;
     setCargandoEstadisticas(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/atecnico/bot/operaciones/${userId}`);
+      const response = await fetch(
+        `${BACKEND_URL}/api/atecnico/bot/operaciones/${userId}`
+      );
       if (!response.ok) {
         throw new Error(`Error ${response.status}`);
       }
@@ -154,7 +170,7 @@ export default function BotPage() {
         operacionesUltimas24h: data.operacionesUltimas24h || 0,
         emparejadasUltimas24h: data.emparejadasUltimas24h || 0,
         beneficio24h: data.beneficio24h || 0,
-        beneficioTotal: data.beneficioTotal || 0
+        beneficioTotal: data.beneficioTotal || 0,
       });
     } catch (error) {
       console.error("Error al cargar estadísticas del bot:", error);
@@ -167,10 +183,11 @@ export default function BotPage() {
   const isValid = useMemo(() => {
     return (
       monto >= 5 &&
+      maximoInvertible >= 10 &&
       intervalosSeleccionados.length > 0 &&
       simbolosSeleccionados.length > 0
     );
-  }, [monto, intervalosSeleccionados, simbolosSeleccionados]);
+  }, [monto, maximoInvertible, intervalosSeleccionados, simbolosSeleccionados]);
 
   // Manejo del switch (solo cambia si el bot no está en ejecución)
   const toggleBot = () => {
@@ -215,6 +232,7 @@ export default function BotPage() {
           simbolos: simbolosSeleccionados.join(","), // <-- NUEVO: enviar símbolos
           limit: 50,
           cooldownMinutes: 3,
+          maxInversion: maximoInvertible
         }),
       });
 
@@ -235,7 +253,8 @@ export default function BotPage() {
       setIniciado(true); // Marcar como ejecutándose
     } catch (error: unknown) {
       console.error("Error al iniciar bot:", error);
-      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      const errorMessage =
+        error instanceof Error ? error.message : "Error desconocido";
       setMensaje(`❌ ${errorMessage}`);
     } finally {
       setCargando(false);
@@ -252,11 +271,14 @@ export default function BotPage() {
     setMensaje(null);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/atecnico/bot/desactivar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
+      const response = await fetch(
+        `${BACKEND_URL}/api/atecnico/bot/desactivar`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -271,7 +293,8 @@ export default function BotPage() {
       setBotActivo(false); // Volver a pantalla de desactivado
     } catch (error: unknown) {
       console.error("Error al detener bot:", error);
-      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      const errorMessage =
+        error instanceof Error ? error.message : "Error desconocido";
       setMensaje(`❌ ${errorMessage}`);
     } finally {
       setCargando(false);
@@ -297,29 +320,34 @@ export default function BotPage() {
             Bot de Señales
           </h1>
           <p className="text-sm text-custom-foreground/70 mt-1">
-            Configura y controla el bot automático de trading basado en señales técnicas.
+            Configura y controla el bot automático de trading basado en señales
+            técnicas.
           </p>
         </div>
 
         {/* Switch ON/OFF */}
         <div className="flex items-center gap-3">
-          <span className={`text-sm font-medium ${!botActivo ? 'text-green-500' : 'text-custom-foreground/70'}`}>
+          <span
+            className={`text-sm font-medium ${!botActivo ? "text-green-500" : "text-custom-foreground/70"}`}
+          >
             OFF
           </span>
           <button
             onClick={toggleBot}
             disabled={iniciado}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--colorTerciario)] focus:ring-offset-2 ${
-              botActivo ? 'bg-green-600' : 'bg-gray-400'
-            } ${iniciado ? 'opacity-50 cursor-not-allowed' : ''}`}
+              botActivo ? "bg-green-600" : "bg-gray-400"
+            } ${iniciado ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                botActivo ? 'translate-x-6' : 'translate-x-1'
+                botActivo ? "translate-x-6" : "translate-x-1"
               }`}
             />
           </button>
-          <span className={`text-sm font-medium ${botActivo ? 'text-green-500' : 'text-custom-foreground/70'}`}>
+          <span
+            className={`text-sm font-medium ${botActivo ? "text-green-500" : "text-custom-foreground/70"}`}
+          >
             ON
           </span>
         </div>
@@ -335,7 +363,8 @@ export default function BotPage() {
               Bot desactivado
             </h3>
             <p className="text-custom-foreground/70 mb-6">
-              Activa el bot para configurar los parámetros y comenzar a operar automáticamente.
+              Activa el bot para configurar los parámetros y comenzar a operar
+              automáticamente.
             </p>
           </div>
         ) : botActivo && !iniciado ? (
@@ -347,7 +376,10 @@ export default function BotPage() {
 
             {/* Monto por orden */}
             <div>
-              <label htmlFor="monto" className="block text-sm font-medium text-custom-foreground/70 mb-2">
+              <label
+                htmlFor="monto"
+                className="block text-sm font-medium text-custom-foreground/70 mb-2"
+              >
                 Monto por orden (USDC)
               </label>
               <input
@@ -371,14 +403,19 @@ export default function BotPage() {
               </span>
               <div className="flex flex-wrap gap-4">
                 {OPCIONES_INTERVALOS.map((intervalo) => (
-                  <label key={intervalo} className="flex items-center space-x-2">
+                  <label
+                    key={intervalo}
+                    className="flex items-center space-x-2"
+                  >
                     <input
                       type="checkbox"
                       checked={intervalosSeleccionados.includes(intervalo)}
                       onChange={() => handleIntervaloChange(intervalo)}
                       className="w-4 h-4 text-[var(--colorTerciario)] bg-[var(--background)] border-card-border rounded focus:ring-[var(--colorTerciario)]"
                     />
-                    <span className="text-sm text-custom-foreground">{intervalo}</span>
+                    <span className="text-sm text-custom-foreground">
+                      {intervalo}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -398,15 +435,41 @@ export default function BotPage() {
                       onChange={() => handleSimboloChange(simbolo)}
                       className="w-4 h-4 text-[var(--colorTerciario)] bg-[var(--background)] border-card-border rounded focus:ring-[var(--colorTerciario)]"
                     />
-                    <span className="text-sm text-custom-foreground">{simbolo}</span>
+                    <span className="text-sm text-custom-foreground">
+                      {simbolo}
+                    </span>
                   </label>
                 ))}
               </div>
             </div>
 
+            {/* Máximo invertible */}
+            <div>
+              <label
+                htmlFor="maximoInvertible"
+                className="block text-sm font-medium text-custom-foreground/70 mb-2"
+              >
+                Máximo invertible (USDC)
+              </label>
+              <input
+                type="number"
+                id="maximoInvertible"
+                min="10"
+                step="10"
+                value={maximoInvertible}
+                onChange={(e) => setMaximoInvertible(Number(e.target.value))}
+                className="w-full md:w-64 px-3 py-2 bg-[var(--background)] border border-card-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--colorTerciario)]"
+              />
+              <p className="text-xs text-custom-foreground/50 mt-1">
+                Capital máximo a utilizar por el bot.
+              </p>
+            </div>
+
             {/* Mensaje de resultado */}
             {mensaje && (
-              <div className={`text-sm p-2 rounded ${mensaje.startsWith('✅') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+              <div
+                className={`text-sm p-2 rounded ${mensaje.startsWith("✅") ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}
+              >
                 {mensaje}
               </div>
             )}
@@ -431,7 +494,8 @@ export default function BotPage() {
               />
               {!isValid && !cargando && (
                 <p className="text-xs text-red-500 mt-2">
-                  Debes seleccionar al menos un marco temporal, un símbolo y un monto mínimo de 5 USDC.
+                  Debes seleccionar al menos un marco temporal, un símbolo y un
+                  monto mínimo de 5 USDC.
                 </p>
               )}
             </div>
@@ -481,51 +545,87 @@ export default function BotPage() {
             {/* Tarjetas de estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">Total operaciones</div>
-                <div className="text-2xl font-bold text-custom-foreground">{estadisticas.totalOperaciones}</div>
+                <div className="text-sm text-custom-foreground/70 mb-1">
+                  Total operaciones
+                </div>
+                <div className="text-2xl font-bold text-custom-foreground">
+                  {estadisticas.totalOperaciones}
+                </div>
               </div>
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">Operaciones emparejadas</div>
-                <div className="text-2xl font-bold text-custom-foreground">{estadisticas.operacionesEmparejadas}</div>
+                <div className="text-sm text-custom-foreground/70 mb-1">
+                  Operaciones emparejadas
+                </div>
+                <div className="text-2xl font-bold text-custom-foreground">
+                  {estadisticas.operacionesEmparejadas}
+                </div>
               </div>
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">Operaciones 24h</div>
-                <div className="text-2xl font-bold text-custom-foreground">{estadisticas.operacionesUltimas24h}</div>
+                <div className="text-sm text-custom-foreground/70 mb-1">
+                  Operaciones 24h
+                </div>
+                <div className="text-2xl font-bold text-custom-foreground">
+                  {estadisticas.operacionesUltimas24h}
+                </div>
               </div>
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">Operaciones emparejadas 24h</div>
-                <div className="text-2xl font-bold text-custom-foreground">{estadisticas.emparejadasUltimas24h}</div>
+                <div className="text-sm text-custom-foreground/70 mb-1">
+                  Operaciones emparejadas 24h
+                </div>
+                <div className="text-2xl font-bold text-custom-foreground">
+                  {estadisticas.emparejadasUltimas24h}
+                </div>
               </div>
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">Beneficio total</div>
-                <div className="text-2xl font-bold text-green-500">{estadisticas.beneficioTotal}</div>
+                <div className="text-sm text-custom-foreground/70 mb-1">
+                  Beneficio total
+                </div>
+                <div className="text-2xl font-bold text-green-500">
+                  {estadisticas.beneficioTotal}
+                </div>
               </div>
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">Beneficio 24h</div>
-                <div className="text-2xl font-bold text-green-500">{estadisticas.beneficio24h}</div>
+                <div className="text-sm text-custom-foreground/70 mb-1">
+                  Beneficio 24h
+                </div>
+                <div className="text-2xl font-bold text-green-500">
+                  {estadisticas.beneficio24h}
+                </div>
               </div>
               <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">Operaciones pendientes</div>
-                <div className="text-2xl font-bold text-amber-500">{estadisticas.operacionesPendientes}</div>
+                <div className="text-sm text-custom-foreground/70 mb-1">
+                  Operaciones pendientes
+                </div>
+                <div className="text-2xl font-bold text-amber-500">
+                  {estadisticas.operacionesPendientes}
+                </div>
               </div>
             </div>
 
             {/* Configuración actual */}
             <div className="mt-4 p-4 bg-[var(--background)] rounded-lg border border-card-border">
-              <h3 className="text-md font-medium text-custom-foreground mb-2">Configuración activa</h3>
+              <h3 className="text-md font-medium text-custom-foreground mb-2">
+                Configuración activa
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
                 <div>
-                  <span className="text-custom-foreground/70">Monto por orden:</span>{' '}
+                  <span className="text-custom-foreground/70">
+                    Monto por orden:
+                  </span>{" "}
                   <span className="font-medium">{configMonto} USDC</span>
                 </div>
                 <div>
-                  <span className="text-custom-foreground/70">Intervalos:</span>{' '}
-                  <span className="font-medium">{configIntervalos.join(', ')}</span>
+                  <span className="text-custom-foreground/70">Intervalos:</span>{" "}
+                  <span className="font-medium">
+                    {configIntervalos.join(", ")}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-custom-foreground/70">Símbolos:</span>{' '}
+                  <span className="text-custom-foreground/70">Símbolos:</span>{" "}
                   <span className="font-medium">
-                    {configSimbolos.length > 0 ? configSimbolos.join(', ') : 'No disponibles'}
+                    {configSimbolos.length > 0
+                      ? configSimbolos.join(", ")
+                      : "No disponibles"}
                   </span>
                 </div>
               </div>
@@ -533,7 +633,9 @@ export default function BotPage() {
 
             {/* Mensaje de resultado */}
             {mensaje && (
-              <div className={`text-sm p-2 rounded ${mensaje.startsWith('✅') ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+              <div
+                className={`text-sm p-2 rounded ${mensaje.startsWith("✅") ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}
+              >
                 {mensaje}
               </div>
             )}
@@ -544,7 +646,8 @@ export default function BotPage() {
       {/* Nota informativa */}
       <div className="mt-6 text-sm text-custom-foreground/60">
         <p className="mb-1">
-          💡 <strong>Importante:</strong> El bot operará con los símbolos seleccionados y los marcos temporales indicados.
+          💡 <strong>Importante:</strong> El bot operará con los símbolos
+          seleccionados y los marcos temporales indicados.
         </p>
         <p>
           ⚠️ Asegúrate de tener fondos suficientes en USDC antes de iniciar.

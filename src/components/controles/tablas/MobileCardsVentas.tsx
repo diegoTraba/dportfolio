@@ -59,7 +59,7 @@ const MobileCardsVentas = ({ ventas }: MobileCardsVentasProps) => {
             </div>
             <div className="card-row">
               <span className="label">Fecha Venta:</span>
-              <span className="value">{formatDateSafe(venta.fechaVenta)}</span>
+              <span className="value">{formatDateSafe(venta.fechaVenta, true)}</span>
             </div>
           </div>
         );

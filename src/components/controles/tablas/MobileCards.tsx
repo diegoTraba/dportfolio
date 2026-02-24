@@ -89,7 +89,7 @@ const MobileCards: React.FC<MobileCardsProps> = ({
             </div>
             <div className="card-row">
               <span className="label">Fecha:</span>
-              <span className="value">{formatDateSafe(compra.fechaCompra)}</span>
+              <span className="value">{formatDateSafe(compra.fechaCompra, true)}</span>
             </div>
             <div className="card-row">
               <span className="label">Estado:</span>

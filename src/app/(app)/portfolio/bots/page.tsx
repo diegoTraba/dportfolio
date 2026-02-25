@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useUserId } from "@/hooks/useUserId";
 import Boton from "@/components/controles/Boton";
+import Card from "@/components/controles/Card";
 import {
   IconoPlay,
   IconoStop,
@@ -232,7 +233,7 @@ export default function BotPage() {
           simbolos: simbolosSeleccionados.join(","), // <-- NUEVO: enviar símbolos
           limit: 50,
           cooldownMinutes: 3,
-          maxInversion: maximoInvertible
+          maxInversion: maximoInvertible,
         }),
       });
 
@@ -503,11 +504,11 @@ export default function BotPage() {
         ) : (
           // Panel de estadísticas (bot en ejecución)
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
               <h2 className="text-xl font-semibold text-custom-foreground">
                 Bot en ejecución
               </h2>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Boton
                   texto={
                     <div className="flex items-center space-x-2">
@@ -544,62 +545,43 @@ export default function BotPage() {
 
             {/* Tarjetas de estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">
-                  Total operaciones
-                </div>
-                <div className="text-2xl font-bold text-custom-foreground">
-                  {estadisticas.totalOperaciones}
-                </div>
-              </div>
-              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">
-                  Operaciones emparejadas
-                </div>
-                <div className="text-2xl font-bold text-custom-foreground">
-                  {estadisticas.operacionesEmparejadas}
-                </div>
-              </div>
-              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">
-                  Operaciones 24h
-                </div>
-                <div className="text-2xl font-bold text-custom-foreground">
-                  {estadisticas.operacionesUltimas24h}
-                </div>
-              </div>
-              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">
-                  Operaciones emparejadas 24h
-                </div>
-                <div className="text-2xl font-bold text-custom-foreground">
-                  {estadisticas.emparejadasUltimas24h}
-                </div>
-              </div>
-              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">
-                  Beneficio total
-                </div>
-                <div className="text-2xl font-bold text-green-500">
-                  {estadisticas.beneficioTotal}
-                </div>
-              </div>
-              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">
-                  Beneficio 24h
-                </div>
-                <div className="text-2xl font-bold text-green-500">
-                  {estadisticas.beneficio24h}
-                </div>
-              </div>
-              <div className="bg-[var(--background)] p-4 rounded-lg border border-card-border">
-                <div className="text-sm text-custom-foreground/70 mb-1">
-                  Operaciones pendientes
-                </div>
-                <div className="text-2xl font-bold text-amber-500">
-                  {estadisticas.operacionesPendientes}
-                </div>
-              </div>
+              <Card
+                titulo="Total operaciones"
+                contenido={{ texto: estadisticas.totalOperaciones }}
+              />
+              <Card
+                titulo="Operaciones emparejadas"
+                contenido={{ texto: estadisticas.operacionesEmparejadas }}
+              />
+              <Card
+                titulo="Operaciones 24h"
+                contenido={{ texto: estadisticas.operacionesUltimas24h }}
+              />
+              <Card
+                titulo="Operaciones emparejadas 24h"
+                contenido={{ texto: estadisticas.emparejadasUltimas24h }}
+              />
+              <Card
+                titulo="Beneficio total"
+                contenido={{
+                  texto: estadisticas.beneficioTotal.toFixed(2),
+                  color: "#10b981", // verde-500
+                }}
+              />
+              <Card
+                titulo="Beneficio 24h"
+                contenido={{
+                  texto: estadisticas.beneficio24h.toFixed(2),
+                  color: "#10b981",
+                }}
+              />
+              <Card
+                titulo="Operaciones pendientes"
+                contenido={{
+                  texto: estadisticas.operacionesPendientes,
+                  color: "#f59e0b", // ámbar-500
+                }}
+              />
             </div>
 
             {/* Configuración actual */}

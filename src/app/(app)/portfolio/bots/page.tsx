@@ -24,13 +24,20 @@ const SIMBOLOS_SOPORTADOS = [
 
 const OPCIONES_INTERVALOS = ["1m", "3m", "5m", "15m"];
 
+interface SimboloConfig {
+  symbol: string;
+  lowerLimit?: number | null;
+  upperLimit?: number | null;
+}
+
 interface BotConfig {
   tradeAmountUSD?: number;
   intervals?: string[];
-  simbolos?: string[]; // Añadimos símbolos a la configuración
+  simbolos?: SimboloConfig[]; // Cambiamos a array de objetos
   limit?: number;
   cooldownMinutes?: number;
   fechaActivacion?: string;
+  maxInversion?: number;
 }
 
 interface EstadisticasBot {
@@ -62,13 +69,21 @@ export default function BotPage() {
   const [simbolosSeleccionados, setSimbolosSeleccionados] = useState<string[]>(
     []
   );
+  const [limites, setLimites] = useState<
+    Record<string, { lower: string; upper: string }>
+  >({});
 
   // Configuración guardada (para mostrar en estadísticas)
   const [configMonto, setConfigMonto] = useState<number>(10);
   const [configMaximoInvertible, setConfigMaximoInvertible] =
     useState<number>(100); // NUEVO
   const [configIntervalos, setConfigIntervalos] = useState<string[]>([]);
-  const [configSimbolos, setConfigSimbolos] = useState<string[]>([]);
+  const [configSimbolosDetalle, setConfigSimbolosDetalle] = useState<
+    SimboloConfig[]
+  >([]);
+  const [configFechaActivacion, setConfigFechaActivacion] = useState<
+    string | null
+  >(null);
 
   // Estadísticas del bot
   const [estadisticas, setEstadisticas] = useState<EstadisticasBot>({
@@ -112,7 +127,9 @@ export default function BotPage() {
           if (data.config) {
             setConfigMonto(data.config.tradeAmountUSD ?? 10);
             setConfigIntervalos(data.config.intervals ?? []);
-            setConfigSimbolos(data.config.simbolos ?? []); // Si el backend guarda símbolos
+            setConfigSimbolosDetalle(data.config.simbolos ?? []); // ← array de objetos
+            setConfigMaximoInvertible(data.config.maxInversion ?? 100);
+            setConfigFechaActivacion(data.config.fechaActivacion ?? null);
           }
         } else {
           // No activo
@@ -213,6 +230,20 @@ export default function BotPage() {
     );
   };
 
+  const handleLowerChange = (simbolo: string, value: string) => {
+    setLimites((prev) => ({
+      ...prev,
+      [simbolo]: { ...prev[simbolo], lower: value },
+    }));
+  };
+
+  const handleUpperChange = (simbolo: string, value: string) => {
+    setLimites((prev) => ({
+      ...prev,
+      [simbolo]: { ...prev[simbolo], upper: value },
+    }));
+  };
+
   const handleIniciarBot = async () => {
     if (!userId) {
       alert("Usuario no identificado");
@@ -223,14 +254,26 @@ export default function BotPage() {
     setMensaje(null);
 
     try {
+      // Construir array de símbolos con límites
+      const simbolosConLimites = simbolosSeleccionados.map((simbolo) => {
+        const lower = limites[simbolo]?.lower;
+        const upper = limites[simbolo]?.upper;
+        return {
+          symbol: simbolo,
+          // Si el campo está vacío se envía null; si tiene valor se parsea a número
+          lowerLimit: lower && lower.trim() !== "" ? parseFloat(lower) : null,
+          upperLimit: upper && upper.trim() !== "" ? parseFloat(upper) : null,
+        };
+      });
+
       const response = await fetch(`${BACKEND_URL}/api/atecnico/bot/activar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId,
           tradeAmountUSD: monto,
-          intervals: intervalosSeleccionados.join(","),
-          simbolos: simbolosSeleccionados.join(","), // <-- NUEVO: enviar símbolos
+          intervals: intervalosSeleccionados.join(","), // si el backend espera string
+          simbolos: simbolosConLimites, // nuevo formato con límites
           limit: 50,
           cooldownMinutes: 3,
           maxInversion: maximoInvertible,
@@ -245,13 +288,15 @@ export default function BotPage() {
       const data = await response.json();
       console.log("Bot activado:", data);
 
-      // Guardar configuración actual
+      // Guardar configuración actual (puedes guardar también los límites si lo deseas)
       setConfigMonto(monto);
       setConfigIntervalos(intervalosSeleccionados);
-      setConfigSimbolos(simbolosSeleccionados);
+      setConfigSimbolosDetalle(simbolosConLimites);
+      setConfigMaximoInvertible(maximoInvertible);
+      setConfigFechaActivacion(new Date().toISOString()); // o si el backend devuelve fecha, úsala
 
       setMensaje("✅ Bot iniciado correctamente");
-      setIniciado(true); // Marcar como ejecutándose
+      setIniciado(true);
     } catch (error: unknown) {
       console.error("Error al iniciar bot:", error);
       const errorMessage =
@@ -427,19 +472,56 @@ export default function BotPage() {
               <span className="block text-sm font-medium text-custom-foreground/70 mb-2">
                 Símbolos (selecciona al menos uno)
               </span>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="space-y-3">
                 {SIMBOLOS_SOPORTADOS.map((simbolo) => (
-                  <label key={simbolo} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={simbolosSeleccionados.includes(simbolo)}
-                      onChange={() => handleSimboloChange(simbolo)}
-                      className="w-4 h-4 text-[var(--colorTerciario)] bg-[var(--background)] border-card-border rounded focus:ring-[var(--colorTerciario)]"
-                    />
-                    <span className="text-sm text-custom-foreground">
-                      {simbolo}
-                    </span>
-                  </label>
+                  <div
+                    key={simbolo}
+                    className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"
+                  >
+                    <div className="flex items-center space-x-2 w-32">
+                      <input
+                        type="checkbox"
+                        checked={simbolosSeleccionados.includes(simbolo)}
+                        onChange={() => handleSimboloChange(simbolo)}
+                        className="w-4 h-4 text-[var(--colorTerciario)] bg-[var(--background)] border-card-border rounded focus:ring-[var(--colorTerciario)]"
+                      />
+                      <span className="text-sm text-custom-foreground">
+                        {simbolo}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-custom-foreground/70">
+                          Inf:
+                        </span>
+                        <input
+                          type="number"
+                          step="any"
+                          value={limites[simbolo]?.lower ?? ""}
+                          onChange={(e) =>
+                            handleLowerChange(simbolo, e.target.value)
+                          }
+                          className="w-24 px-2 py-1 text-sm bg-[var(--background)] border border-card-border rounded focus:outline-none focus:ring-2 focus:ring-[var(--colorTerciario)]"
+                          placeholder="Límite inf"
+                        />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-custom-foreground/70">
+                          Sup:
+                        </span>
+                        <input
+                          type="number"
+                          step="any"
+                          value={limites[simbolo]?.upper ?? ""}
+                          onChange={(e) =>
+                            handleUpperChange(simbolo, e.target.value)
+                          }
+                          className="w-24 px-2 py-1 text-sm bg-[var(--background)] border border-card-border rounded focus:outline-none focus:ring-2 focus:ring-[var(--colorTerciario)]"
+                          placeholder="Límite sup"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -589,12 +671,20 @@ export default function BotPage() {
               <h3 className="text-md font-medium text-custom-foreground mb-2">
                 Configuración activa
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-custom-foreground/70">
                     Monto por orden:
                   </span>{" "}
                   <span className="font-medium">{configMonto} USDC</span>
+                </div>
+                <div>
+                  <span className="text-custom-foreground/70">
+                    Máximo invertible:
+                  </span>{" "}
+                  <span className="font-medium">
+                    {configMaximoInvertible} USDC
+                  </span>
                 </div>
                 <div>
                   <span className="text-custom-foreground/70">Intervalos:</span>{" "}
@@ -603,12 +693,41 @@ export default function BotPage() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-custom-foreground/70">Símbolos:</span>{" "}
+                  <span className="text-custom-foreground/70">
+                    Activado el:
+                  </span>{" "}
                   <span className="font-medium">
-                    {configSimbolos.length > 0
-                      ? configSimbolos.join(", ")
-                      : "No disponibles"}
+                    {configFechaActivacion
+                      ? new Date(configFechaActivacion).toLocaleString()
+                      : "Desconocido"}
                   </span>
+                </div>
+              </div>
+              <div className="mt-3">
+                <span className="text-custom-foreground/70 block mb-1">
+                  Símbolos con límites:
+                </span>
+                <div className="space-y-2">
+                  {configSimbolosDetalle.length > 0 ? (
+                    configSimbolosDetalle.map((item) => (
+                      <div
+                        key={item.symbol}
+                        className="flex items-center gap-4 text-sm"
+                      >
+                        <span className="font-medium w-24">{item.symbol}</span>
+                        <span className="text-custom-foreground/70">
+                          Inf: {item.lowerLimit ?? "—"}
+                        </span>
+                        <span className="text-custom-foreground/70">
+                          Sup: {item.upperLimit ?? "—"}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-custom-foreground/50">
+                      No disponibles
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

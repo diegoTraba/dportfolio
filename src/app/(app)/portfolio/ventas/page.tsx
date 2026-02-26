@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation";
 import { useUserId } from "@/hooks/useUserId";
 import Boton from "@/components/controles/Boton";
 import TablaVentas from "@/components/controles/tablas/TablaVentas";
+import FiltroOperaciones from "@/components/controles/FiltrosOperaciones";
+import Card from "@/components/controles/Card"; // Importamos el componente Card
 import { Venta } from "@/interfaces/comun.types";
-import { IconoRefrescar, IconoDolar, IconoBuscar } from "@/components/controles/Iconos";
+import {
+  IconoRefrescar,
+  IconoDolar,
+  IconoBuscar,
+} from "@/components/controles/Iconos";
+import { SIMBOLOS_SOPORTADOS } from "@/lib/constantes";
 
 export default function Ventas() {
   const userId = useUserId();
@@ -17,18 +24,37 @@ export default function Ventas() {
   const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [recargar, setRecargar] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Filtrar ventas según el término de búsqueda (por símbolo o exchange)
-  const filteredVentas = useMemo(() => {
-    if (!searchTerm.trim()) return ventas;
-    const term = searchTerm.toLowerCase().trim();
-    return ventas.filter(
-      (venta) =>
-        venta.simbolo?.toLowerCase().includes(term) ||
-        venta.exchange?.toLowerCase().includes(term)
-    );
-  }, [ventas, searchTerm]);
+  // Estados para los filtros
+  const [fechaInicio, setFechaInicio] = useState<Date | null>(null);
+  const [fechaFin, setFechaFin] = useState<Date | null>(null);
+  const [simboloSeleccionado, setSimboloSeleccionado] = useState<string>("");
+
+  // Filtrar ventas según los filtros seleccionados
+  const ventasFiltradas = useMemo(() => {
+    return ventas.filter((venta) => {
+      // Filtro por fecha (fechaVenta)
+      if (fechaInicio) {
+        const fechaDesde = fechaInicio.toISOString().split("T")[0];
+        if (venta.fechaVenta < fechaDesde) return false;
+      }
+      if (fechaFin) {
+        const fechaHasta = fechaFin.toISOString().split("T")[0];
+        if (venta.fechaVenta > fechaHasta) return false;
+      }
+      // Filtro por símbolo
+      if (simboloSeleccionado && venta.simbolo !== simboloSeleccionado)
+        return false;
+      return true;
+    });
+  }, [ventas, fechaInicio, fechaFin, simboloSeleccionado]);
+
+  // Función para limpiar todos los filtros
+  const handleLimpiarFiltros = () => {
+    setFechaInicio(null);
+    setFechaFin(null);
+    setSimboloSeleccionado("");
+  };
 
   // Función para cargar las ventas desde el backend
   const cargarVentas = useCallback(async () => {
@@ -98,14 +124,9 @@ export default function Ventas() {
     setRecargar(true);
   };
 
-  // Limpiar búsqueda
-  const limpiarBusqueda = () => {
-    setSearchTerm("");
-  };
-
   // Calcular estadísticas (basadas en ventas totales, no filtradas)
-  const calcularEstadisticas = () => {
-    if (ventas.length === 0) {
+  const calcularEstadisticas = (ventasBase: Venta[]) => {
+    if (ventasBase.length === 0) {
       return {
         totalVentas: 0,
         beneficioTotal: 0,
@@ -118,28 +139,32 @@ export default function Ventas() {
     const ahora = new Date();
     const hace24h = new Date(ahora.getTime() - 24 * 60 * 60 * 1000);
 
-    const beneficioTotal = ventas.reduce(
+    const beneficioTotal = ventasBase.reduce(
       (acc, venta) => acc + venta.beneficio,
       0
     );
-    const comisionesTotales = ventas.reduce(
+    const comisionesTotales = ventasBase.reduce(
       (acc, venta) => acc + (venta.comision || 0),
       0
     );
-    const beneficio24h = ventas
+    const beneficio24h = ventasBase
       .filter((venta) => new Date(venta.fechaVenta) >= hace24h)
       .reduce((acc, venta) => acc + venta.beneficio, 0);
 
     return {
-      totalVentas: ventas.length,
+      totalVentas: ventasBase.length,
       beneficioTotal,
-      beneficioPromedio: beneficioTotal / ventas.length,
+      beneficioPromedio: beneficioTotal / ventasBase.length,
       comisionesTotales,
       beneficio24h,
     };
   };
 
-  const estadisticas = calcularEstadisticas();
+  const estadisticasTotales = calcularEstadisticas(ventas);
+  const estadisticasFiltradas = calcularEstadisticas(ventasFiltradas);
+
+  // Determinar si hay filtros activos
+  const mostrarFiltros = fechaInicio || fechaFin || simboloSeleccionado;
 
   return (
     <>
@@ -156,27 +181,6 @@ export default function Ventas() {
           </div>
 
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            {/* Caja de búsqueda */}
-            <div className="relative flex-grow md:flex-grow-0">
-              <input
-                type="text"
-                placeholder="Buscar por símbolo o exchange..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full md:w-64 px-4 py-2 pl-10 rounded-lg border border-card-border bg-surface text-custom-foreground focus:outline-none focus:ring-2 focus:ring-[var(--colorTerciario)] transition-shadow"
-              />
-              <IconoBuscar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-custom-foreground/50 w-4 h-4" />
-              {searchTerm && (
-                <button
-                  onClick={limpiarBusqueda}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-custom-foreground/50 hover:text-custom-foreground/80"
-                  aria-label="Limpiar búsqueda"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-
             <Boton
               texto={
                 <div className="flex items-center space-x-2">
@@ -189,71 +193,62 @@ export default function Ventas() {
           </div>
         </div>
 
-        {/* Panel de estadísticas (igual que antes) */}
+        {/* Panel de estadísticas usando el componente Card */}
         {ventas.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-surface rounded-lg p-4 border border-card-border">
-              <div className="text-sm text-custom-foreground/70 mb-1">
-                Total Ventas
-              </div>
-              <div className="text-2xl font-bold text-custom-foreground">
-                {estadisticas.totalVentas}
-              </div>
-            </div>
-
-            <div className="bg-surface rounded-lg p-4 border border-card-border">
-              <div className="text-sm text-custom-foreground/70 mb-1">
-                Beneficio Total
-              </div>
-              <div
-                className={`text-2xl font-bold ${
-                  estadisticas.beneficioTotal >= 0
-                    ? "text-green-500"
-                    : "text-red-500"
-                }`}
-              >
-                ${estadisticas.beneficioTotal.toFixed(2)}
-              </div>
-            </div>
-            <div className="bg-surface rounded-lg p-4 border border-card-border">
-              <div className="text-sm text-custom-foreground/70 mb-1">
-                Beneficio 24h
-              </div>
-              <div
-                className={`text-2xl font-bold ${
-                  estadisticas.beneficio24h >= 0
-                    ? "text-green-500"
-                    : "text-red-500"
-                }`}
-              >
-                ${estadisticas.beneficio24h.toFixed(2)}
-              </div>
-            </div>
-
-            <div className="bg-surface rounded-lg p-4 border border-card-border">
-              <div className="text-sm text-custom-foreground/70 mb-1">
-                Beneficio Promedio
-              </div>
-              <div
-                className={`text-2xl font-bold ${
-                  estadisticas.beneficioPromedio >= 0
-                    ? "text-green-500"
-                    : "text-red-500"
-                }`}
-              >
-                ${estadisticas.beneficioPromedio.toFixed(2)}
-              </div>
-            </div>
-
-            <div className="bg-surface rounded-lg p-4 border border-card-border">
-              <div className="text-sm text-custom-foreground/70 mb-1">
-                Comisiones Totales
-              </div>
-              <div className="text-2xl font-bold text-amber-500">
-                ${estadisticas.comisionesTotales.toFixed(2)}
-              </div>
-            </div>
+            <Card
+              titulo="Total Ventas"
+              contenido={{
+                texto: estadisticasTotales.totalVentas
+              }}
+            />
+            <Card
+              titulo="Beneficio Total"
+              contenido={{
+                texto: `$${estadisticasTotales.beneficioTotal.toFixed(2)}`,
+                color: estadisticasTotales.beneficioTotal >= 0 ? '#10b981' : '#ef4444'
+              }}
+            />
+            <Card
+              titulo="Beneficio 24h"
+              contenido={{
+                texto: `$${estadisticasTotales.beneficio24h.toFixed(2)}`,
+                color: estadisticasTotales.beneficio24h >= 0 ? '#10b981' : '#ef4444'
+              }}
+            />
+            <Card
+              titulo="Beneficio Promedio"
+              contenido={{
+                texto: `$${estadisticasTotales.beneficioPromedio.toFixed(2)}`,
+                color: estadisticasTotales.beneficioPromedio >= 0 ? '#10b981' : '#ef4444'
+              }}
+            />
+            <Card
+              titulo="Comisiones Totales"
+              contenido={{
+                texto: `$${estadisticasTotales.comisionesTotales.toFixed(2)}`,
+                color: '#f59e0b'
+              }}
+            />
           </div>
+        )}
+
+        {/* Componente de filtros reutilizable */}
+        {ventas.length > 0 && (
+          <FiltroOperaciones
+            fechaInicio={fechaInicio}
+            fechaFin={fechaFin}
+            setFechaInicio={setFechaInicio}
+            setFechaFin={setFechaFin}
+            simboloSeleccionado={simboloSeleccionado}
+            setSimboloSeleccionado={setSimboloSeleccionado}
+            handleLimpiarFiltros={handleLimpiarFiltros}
+            totalItems={ventas.length}
+            itemsFiltrados={ventasFiltradas.length}
+            mostrarFiltros={true}
+            labelFechaInicio="Fecha de venta desde"
+            labelFechaFin="Fecha de venta hasta"
+          />
         )}
 
         {/* Contenido principal */}
@@ -310,17 +305,6 @@ export default function Ventas() {
           <>
             <div className="mb-4 flex flex-wrap justify-between items-center gap-2">
               <div className="text-sm text-custom-foreground/70">
-                {searchTerm ? (
-                  <>
-                    Mostrando {filteredVentas.length} de {ventas.length} venta
-                    {ventas.length !== 1 ? "s" : ""}
-                  </>
-                ) : (
-                  <>Mostrando {ventas.length} venta{ventas.length !== 1 ? "s" : ""}</>
-                )}
-              </div>
-
-              <div className="text-sm text-custom-foreground/70">
                 Última actualización:{" "}
                 {new Date().toLocaleTimeString([], {
                   hour: "2-digit",
@@ -329,23 +313,23 @@ export default function Ventas() {
               </div>
             </div>
 
-            {filteredVentas.length === 0 ? (
+            {ventasFiltradas.length === 0 ? (
               <div className="text-center py-8 bg-surface/50 rounded-lg border border-card-border">
                 <p className="text-custom-foreground/70">
-                  No se encontraron ventas para ${searchTerm}
+                  No se encontraron ventas con los filtros seleccionados.
                 </p>
                 <button
-                  onClick={limpiarBusqueda}
+                  onClick={handleLimpiarFiltros}
                   className="mt-2 text-[var(--colorTerciario)] hover:underline"
                 >
-                  Limpiar búsqueda
+                  Limpiar filtros
                 </button>
               </div>
             ) : (
-              <TablaVentas ventas={filteredVentas} />
+              <TablaVentas ventas={ventasFiltradas} />
             )}
 
-            {/* Resumen final (con estadísticas totales) */}
+            {/* Resumen final (con estadísticas de las ventas filtradas) */}
             <div className="mt-6 pt-4 border-t border-card-border">
               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="text-sm text-custom-foreground/70">
@@ -355,19 +339,19 @@ export default function Ventas() {
                 <div className="flex items-center gap-4">
                   <div className="text-sm">
                     <span className="text-custom-foreground/70 mr-2">
-                      Beneficio neto:
+                      Beneficio neto (filtrado):
                     </span>
                     <span
                       className={`font-semibold ${
-                        estadisticas.beneficioTotal >= 0
+                        estadisticasFiltradas.beneficioTotal >= 0
                           ? "text-green-500"
                           : "text-red-500"
                       }`}
                     >
                       $
                       {(
-                        estadisticas.beneficioTotal -
-                        estadisticas.comisionesTotales
+                        estadisticasFiltradas.beneficioTotal -
+                        estadisticasFiltradas.comisionesTotales
                       ).toFixed(2)}
                     </span>
                   </div>

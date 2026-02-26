@@ -62,6 +62,11 @@ const TablaCompras = ({
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
+  useEffect(() => {
+    console.log('🔍 Compras en TablaCompras:', compras);
+    compras.forEach(c => console.log(`   ID: ${c.id}, botS: ${c.botS}, tipo: ${typeof c.botS}`));
+  }, [compras]);
+
   const getVisibleRows = useCallback(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
@@ -180,7 +185,7 @@ const TablaCompras = ({
         backgroundColor: "var(--card-bg)",
         color: "var(--foreground)",
         borderBottom: "1px solid var(--card-border)",
-        "&:hover": { backgroundColor: "var(--surface) !important" },
+        "&:hover": { backgroundColor: "var(--surface)" },
       },
       stripedStyle: { backgroundColor: "var(--surface)" },
     },
@@ -351,6 +356,27 @@ const TablaCompras = ({
                   selectAllRowsItem: false,
                   selectAllRowsItemText: "Todos",  // Si activas selectAllRows
                 }}
+                 // 👇 NUEVO: Estilos condicionales para filas con botS = true
+                 conditionalRowStyles={[
+                  {
+                    when: row => {
+                      const isBot = row.botS === true;
+                      if (isBot) {
+                        console.log(`✅ Aplicando estilo a fila con botS=true, ID: ${row.id}`);
+                      } else {
+                        // Opcional: log para ver si hay falsos negativos
+                        if (row.botS !== undefined) console.log(`❌ Fila ID ${row.id} con botS=${row.botS} no aplica`);
+                      }
+                      return isBot;
+                    },
+                    classNames: ['fila-bot'], // clase para identificar la fila
+                    style: { 
+                      backgroundColor: `rgba(var(--colorTerciario-rgb), 0.3)`,
+                      // Podemos agregar un borde temporal para ver si el estilo se aplica aunque el color no se vea
+                      borderLeft: '4px solid var(--colorSecundario)'
+                    },
+                  },
+                ]}
               />
             </div>
           </>

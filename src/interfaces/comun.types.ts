@@ -104,6 +104,7 @@ export interface Compra {
   comisionMoneda?: string;
   fechaCompra: string;
   vendida?: boolean; 
+  botS?: boolean;
 }
 
 // Añade esto a tu archivo existente de interfaces

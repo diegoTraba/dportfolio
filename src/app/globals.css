@@ -12,6 +12,7 @@
   --colorPrimario: #127db2;
   --colorSecundario: #2e3687;
   --colorTerciario: #12b296;
+  --colorTerciario-rgb: 18, 178, 150;
 
   --custom-accent: #127db2;
   --custom-accent-hover: #1e5a8a;
@@ -233,13 +234,13 @@ body {
 }
 
 .rdt_TableBody .rdt_TableRow {
-  background-color: var(--card-bg) !important;
+  background-color: var(--card-bg);
   color: var(--foreground) !important;
   border-bottom: 1px solid var(--card-border) !important;
 }
 
 .rdt_TableBody .rdt_TableRow:hover {
-  background-color: var(--surface) !important;
+  background-color: var(--surface);
 }
 
 .rdt_TableCell {
@@ -416,4 +417,14 @@ body {
 [data-theme="dark"] .menu-link-mobile:not(.active):hover {
   background-color: #12b296 !important;
   color: white !important;
+}
+
+/* Fondo para la fila completa */
+.fila-bot {
+  background-color: rgba(var(--colorTerciario-rgb), 0.2) !important;
+}
+
+/* Heredar el fondo a las celdas */
+.fila-bot .rdt_TableCell {
+  background-color: inherit !important;
 }
